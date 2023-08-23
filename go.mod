@@ -1,4 +1,4 @@
-module github.com/staspiter/forji-tree
+module github.com/staspiter/forjitree
 
 go 1.19
 
