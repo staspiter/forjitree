@@ -1,10 +1,9 @@
 package forjitree
 
 import (
+	"fmt"
 	"plugin"
 	"reflect"
-
-	"github.com/rs/zerolog/log"
 )
 
 type ObjectType struct {
@@ -19,21 +18,18 @@ func NewObjectType(newObjectFunc NewObjectFunc, name string) *ObjectType {
 	}
 }
 
-func NewObjectTypesFromPlugin(pluginFilename string) []*ObjectType {
+func NewObjectTypesFromPlugin(pluginFilename string) ([]*ObjectType, error) {
 	p, err := plugin.Open(pluginFilename)
 	if err != nil {
-		log.Error().Err(err).Msgf("Loading plugin error %s: %s", pluginFilename, err)
-		return nil
+		return nil, fmt.Errorf("Loading plugin error %s: %s", pluginFilename, err)
 	}
 	s, err := p.Lookup("GetTypes")
 	if err != nil {
-		log.Error().Err(err).Msgf("Loading plugin error %s: GetTypes function was not found: %s", pluginFilename, err)
-		return nil
+		return nil, fmt.Errorf("Loading plugin error %s: GetTypes function was not found: %s", pluginFilename, err)
 	}
 	getTypesFunc, ok := s.(PluginsGetTypesFunc)
 	if !ok {
-		log.Error().Err(err).Msgf("Loading plugin error %s: GetTypes function is invalid: %s", pluginFilename, err)
-		return nil
+		return nil, fmt.Errorf("Loading plugin error %s: GetTypes function is invalid: %s", pluginFilename, err)
 	}
 	typeNames := getTypesFunc()
 
@@ -41,13 +37,11 @@ func NewObjectTypesFromPlugin(pluginFilename string) []*ObjectType {
 	for _, typeName := range typeNames {
 		s, err = p.Lookup("New" + typeName)
 		if err != nil {
-			log.Error().Err(err).Msgf("Loading plugin error %s: New%s function was not found", typeName, typeName)
-			return nil
+			return nil, fmt.Errorf("Loading plugin error %s: New%s function was not found", typeName, typeName)
 		}
 		newFunc, ok := s.(NewObjectFunc)
 		if !ok {
-			log.Error().Err(err).Msgf("Loading plugin error %s: New%s function should match 'func() Object'", typeName, typeName)
-			return nil
+			return nil, fmt.Errorf("Loading plugin error %s: New%s function should match 'func() Object'", typeName, typeName)
 		}
 		objectTypes = append(objectTypes, &ObjectType{
 			Name:          typeName,
@@ -55,7 +49,7 @@ func NewObjectTypesFromPlugin(pluginFilename string) []*ObjectType {
 		})
 	}
 
-	return objectTypes
+	return objectTypes, nil
 }
 
 func (t *ObjectType) createObject(node Node) Object {

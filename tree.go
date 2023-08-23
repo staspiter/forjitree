@@ -57,11 +57,15 @@ func (t *Tree) AddType(newObjectFunc NewObjectFunc, name string) {
 	t.objectTypes[name] = NewObjectType(newObjectFunc, name)
 }
 
-func (t *Tree) AddPlugin(pluginFilename string) {
-	newTypes := NewObjectTypesFromPlugin(pluginFilename)
+func (t *Tree) AddPlugin(pluginFilename string) error {
+	newTypes, err := NewObjectTypesFromPlugin(pluginFilename)
+	if err != nil {
+		return err
+	}
 	for _, ot := range newTypes {
 		t.objectTypes[ot.Name] = ot
 	}
+	return nil
 }
 
 func (t *Tree) GetType(name string) *ObjectType {
