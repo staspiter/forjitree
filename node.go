@@ -1,4 +1,4 @@
-package tree
+package forjitree
 
 import (
 	"reflect"

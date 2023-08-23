@@ -1,4 +1,4 @@
-package tree
+package forjitree
 
 type Tree struct {
 	objectTypes map[string]*ObjectType
