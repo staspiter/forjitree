@@ -9,6 +9,7 @@ type Tree struct {
 	objectTypes map[string]*ObjectType
 	rootNode    *node
 	created     bool
+	modified    bool
 
 	watchers               map[string]*watcher
 	watchersMutex          sync.Mutex
@@ -23,6 +24,7 @@ func New() *Tree {
 		watchers:               make(map[string]*watcher),
 		watchersCleanTimestamp: time.Now(),
 		watchersCleanInterval:  60,
+		modified:               false,
 	}
 	t.rootNode = newNode(t, nil, "")
 	return t
@@ -36,14 +38,12 @@ func (t *Tree) Created() {
 	t.created = true
 }
 
-func (t *Tree) DestroyObjects() {
-	t.rootNode.destroyObject(true)
-}
-
 func (t *Tree) Clear() {
 	t.watchers = make(map[string]*watcher)
-	t.DestroyObjects()
+	t.rootNode.destroyObject(true)
+	t.rootNode = newNode(t, nil, "")
 	t.created = false
+	t.modified = true
 }
 
 func (t *Tree) GetValue() any {
@@ -69,6 +69,10 @@ func (t *Tree) Set(data any) {
 		for i := 0; i < len(createdObjects); i++ {
 			createdObjects[i].obj.CreatedTree()
 		}
+	}
+
+	if len(modifiedNodes) > 0 {
+		t.modified = true
 	}
 
 	// Merge with watchers changes
@@ -131,4 +135,12 @@ func (t *Tree) GetType(name string) *ObjectType {
 
 func (t *Tree) Root() *node {
 	return t.rootNode
+}
+
+func (t *Tree) IsModified() bool {
+	return t.modified
+}
+
+func (t *Tree) ResetModified() {
+	t.modified = false
 }
