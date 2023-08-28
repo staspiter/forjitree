@@ -43,7 +43,6 @@ func (t *Tree) DestroyObjects() {
 func (t *Tree) Clear() {
 	t.watchers = make(map[string]*watcher)
 	t.DestroyObjects()
-	t.rootNode.callCreatedTree()
 	t.created = false
 }
 
