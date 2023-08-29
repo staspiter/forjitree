@@ -201,27 +201,30 @@ func ExtractTrunkPathAndValue(obj map[string]any) (string, any) {
 	p = obj
 	path := []string{}
 	var value any = nil
+
 	for {
 		if pMap, pIsMap := p.(map[string]any); pIsMap {
 			if len(pMap) == 1 {
-				keys := make([]string, len(pMap))
+				var key string
 				for k := range pMap {
-					keys = append(keys, k)
+					key = k
+					break
 				}
-				path = append(path, keys[0])
-				p = pMap[keys[0]]
+				path = append(path, key)
+				p = pMap[key]
 			} else {
 				value = p
 				break
 			}
 		} else if pMap, pIsMap := p.(map[string]string); pIsMap {
 			if len(pMap) == 1 {
-				keys := make([]string, len(pMap))
+				var key string
 				for k := range pMap {
-					keys = append(keys, k)
+					key = k
+					break
 				}
-				path = append(path, keys[0])
-				p = pMap[keys[0]]
+				path = append(path, key)
+				p = pMap[key]
 			} else {
 				value = p
 				break
