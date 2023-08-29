@@ -219,3 +219,25 @@ func EnsureMapAny(m any) map[string]any {
 	}
 	return result
 }
+
+func TryStrToNativeType(s string) any {
+	i, err := strconv.Atoi(s)
+	if err == nil {
+		return i
+	}
+
+	f, err := strconv.ParseFloat(s, 32)
+	if err == nil {
+		return f
+	}
+
+	if s == "true" {
+		return true
+	}
+
+	if s == "false" {
+		return false
+	}
+
+	return s
+}
