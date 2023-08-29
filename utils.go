@@ -195,3 +195,41 @@ func Capitalize(str string) string {
 	runes[0] = unicode.ToUpper(runes[0])
 	return string(runes)
 }
+
+func ExtractTrunkPathAndValue(obj map[string]any) (string, any) {
+	var p any
+	p = obj
+	path := []string{}
+	var value any = nil
+	for {
+		if pMap, pIsMap := p.(map[string]any); pIsMap {
+			if len(pMap) == 1 {
+				keys := make([]string, len(pMap))
+				for k := range pMap {
+					keys = append(keys, k)
+				}
+				path = append(path, keys[0])
+				p = pMap[keys[0]]
+			} else {
+				value = p
+				break
+			}
+		} else if pMap, pIsMap := p.(map[string]string); pIsMap {
+			if len(pMap) == 1 {
+				keys := make([]string, len(pMap))
+				for k := range pMap {
+					keys = append(keys, k)
+				}
+				path = append(path, keys[0])
+				p = pMap[keys[0]]
+			} else {
+				value = p
+				break
+			}
+		} else {
+			value = p
+			break
+		}
+	}
+	return strings.Join(path, "/"), value
+}
