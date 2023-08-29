@@ -195,3 +195,27 @@ func Capitalize(str string) string {
 	runes[0] = unicode.ToUpper(runes[0])
 	return string(runes)
 }
+
+func EnsureMapAny(m any) map[string]any {
+	result := map[string]any{}
+	if mMap, mIsMap := m.(map[string]any); mIsMap {
+		for k, v := range mMap {
+			result[k] = v
+		}
+	} else if mMap, mIsMap := m.(map[string]string); mIsMap {
+		for k, v := range mMap {
+			result[k] = v
+		}
+	} else if mMap, mIsMap := m.(map[string]bool); mIsMap {
+		for k, v := range mMap {
+			result[k] = v
+		}
+	} else if mMap, mIsMap := m.(map[string]int); mIsMap {
+		for k, v := range mMap {
+			result[k] = v
+		}
+	} else {
+		return nil
+	}
+	return result
+}
