@@ -53,6 +53,7 @@ func (t *Tree) GetValue() any {
 func (t *Tree) Set(data any) {
 	modifiedNodes := t.rootNode.patch(data)
 
+	// Call synchronize for modified nodes
 	createdObjects := []*node{}
 	for i := len(modifiedNodes) - 1; i >= 0; i-- {
 		if modifiedNodes[i].synchronize() {
