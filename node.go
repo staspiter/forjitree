@@ -62,24 +62,9 @@ func (n *node) setNodeType(newNodeType int) bool {
 
 	n.mu.Lock()
 
-	switch newNodeType {
-	case NodeTypeMap:
-		if n.nodeType != NodeTypeMap {
-			n.m = make(map[string]*node)
-			n.sl = nil
-			n.value = nil
-		}
-	case NodeTypeSlice:
-		if n.nodeType != NodeTypeSlice {
-			n.sl = make([]*node, 0)
-			n.m = nil
-			n.value = nil
-		}
-	case NodeTypeValue:
-		n.m = nil
-		n.sl = nil
-		n.value = nil
-	}
+	n.m = make(map[string]*node)
+	n.sl = make([]*node, 0)
+	n.value = nil
 
 	n.nodeType = newNodeType
 
@@ -393,10 +378,7 @@ func internalGet(nodes []*node, t pathToken, postprocess bool) []*node {
 			appendPostprocess(n.tree.rootNode)
 
 		} else if t.Kind == PathTokenKindSub {
-			sub := n.getChild(t.Key)
-			if sub != nil {
-				appendPostprocess(sub)
-			}
+			appendPostprocess(n.getChild(t.Key))
 
 		} else if t.Kind == PathTokenKindParams {
 			satisfied := true
@@ -464,10 +446,7 @@ func (n *node) Parent() Node {
 }
 
 func (n *node) Root() Node {
-	if n.parent == nil {
-		return n
-	}
-	return n.parent.Root()
+	return n.tree.rootNode
 }
 
 func (n *node) Name() string {
