@@ -21,10 +21,10 @@ func New() *Tree {
 	t := &Tree{
 		objectTypes:            make(map[string]*ObjectType),
 		created:                false,
+		modified:               false,
 		watchers:               make(map[string]*watcher),
 		watchersCleanTimestamp: time.Now(),
 		watchersCleanInterval:  60,
-		modified:               false,
 	}
 	t.rootNode = newNode(t, nil, "")
 	return t
@@ -61,6 +61,7 @@ func (t *Tree) Set(data any) {
 		}
 	}
 
+	// Call CreatedChildren
 	for i := len(createdObjects) - 1; i >= 0; i-- {
 		createdObjects[i].obj.CreatedChildren()
 	}
