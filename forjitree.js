@@ -196,7 +196,7 @@ class Node {
                 for (const [k, v] of Object.entries(this.m)) {
                     if (k == ObjectKeyword)
                         continue
-                    this.objType.setField(this, k, v.getValue())
+                    this.objType.setField(this, k, v.getValue(), false)
                 }
 
                 this.callObjFunc('Created')
@@ -205,7 +205,7 @@ class Node {
         }
 
         if (this.parent != null && this.parent.nodeType == NodeType.Map && this.parent.objType != null && this.parentKey != ObjectKeyword)
-            this.parent.objType.setField(this.parent, this.parentKey, this.getValue())
+            this.parent.objType.setField(this.parent, this.parentKey, this.getValue(), true)
         
         return createdObj
     }
@@ -421,9 +421,10 @@ class ObjectType {
         return new this.objectClass(node)
     }
 
-    setField(node, key, value) {
+    setField(node, key, value, callUpdated) {
         node.obj[key] = value
-        if (node.obj["Updated"] && typeof node.obj["Updated"] === "function")
+        
+        if (callUpdated && node.obj["Updated"] && typeof node.obj["Updated"] === "function")
             node.obj["Updated"](key, value)
     }
 
