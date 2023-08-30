@@ -189,7 +189,7 @@ class Node {
             
             if (newType) {
                 this.objType = newType
-                this.obj = new newType.createObject(this)
+                this.obj = newType.createObject(this)
                 this.obj.node = this
 
                 // Set all fields immediately before calling Created
@@ -558,7 +558,7 @@ class DatasourceClient {
         this.node = node
         this.websocket = false
         this.url = ""
-        this.tree = new Tree()
+        this.Tree = new Tree()
     }
 
     Created() {
@@ -567,14 +567,14 @@ class DatasourceClient {
             this.socket = new WebSocket(this.url + "/" + this.watcherId)
             this.socket.onmessage = (event) => {
                 let data = JSON.parse(event.data)
-                this.tree.Set(data)
+                this.Tree.Set(data)
                 console.log(data)
             }
             
         } else {
             fetch(this.url)
                 .then(response => response.json())
-                .then(data => this.tree.Set(data))
+                .then(data => this.Tree.Set(data))
         }
     }
 

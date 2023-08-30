@@ -2,13 +2,12 @@ folderDatasource:
   object: FolderDatasource
   path: testdata
 
-  sampleStarship:
+  sampleCircles:
     object: Sample
-    starship: 
-      object: Starship
+    circles: 
+      object: Circle
       x: 0
       y: 0
-      z: 0
 
 server:
   object: Server
@@ -17,20 +16,19 @@ server:
   schema:
     object: Schema
 
-    "GET|WatchStarship/:watcherId":
+    "GET|WatchCircles/:watcherId":
       object: ActionWatch
       websocket: true
       query:
-        starship: null
+        circles: null
 
-    "GET|MoveStarship/:watcherId":
+    "GET|MoveCircles":
       object: ActionSet
       mergeInput: false
       query:
-        starship: 
-          x: :random({number:1,100})
-          y: :random({number:1,100})
-          z: :random({number:1,100})
+        circles: 
+          x: :random({number:1,500})
+          y: :random({number:1,500})
 
     "GET|res/:filename":
       object: ActionResourceGet
@@ -49,9 +47,21 @@ server:
         </head>
         <body>
         <script>
+          class Circle {
+            constructor(node) {
+              this.node = node
+              console.log('Circle created')
+            }
+
+            Updated(key, value) {
+              console.log('Circle updated')
+            }
+          }
+
           let Config = new DatasourceClient(null)
+          Config.Tree.AddType(Circle, 'Circle')
           Config.websocket = true
-          Config.url = "wss://training.place/WatchStarship"
+          Config.url = "wss://training.place/WatchCircles"
           Config.Created()
         </script>
         </body>
