@@ -1,13 +1,19 @@
 folderDatasource:
   object: FolderDatasource
   path: testdata
+  dropOnConnect: true
 
   sampleCircles:
     object: Sample
-    circles: 
-      object: Circle
-      x: 0
-      y: 0
+    circles:
+      first_circle:
+        object: Circle
+        x: 0
+        y: 0
+      second_circle:
+        object: Circle
+        x: 0
+        y: 0
 
 server:
   object: Server
@@ -22,13 +28,14 @@ server:
       query:
         circles: null
 
-    "GET|MoveCircles":
+    "GET|MoveCircle/:circleId":
       object: ActionSet
       mergeInput: false
       query:
-        circles: 
-          x: :random({number:1,500})
-          y: :random({number:1,500})
+        circles:
+          ":Params.circleId":
+            x: :random({number:1,500})
+            y: :random({number:1,500})
 
     "GET|res/:filename":
       object: ActionResourceGet
