@@ -159,17 +159,19 @@ func SubstituteValuesInArray(m []any, f func(string, []string) any, path []strin
 func SubstituteValuesInMap(m map[string]any, f func(string, []string) any, path []string) {
 	for k, v := range m {
 		delete(m, k)
-		k = f(k, append(path, k)).(string)
-		if vm, ok := v.(map[string]any); ok {
+		k1, kIsStr := f(k, append(path, k)).(string)
+		if !kIsStr {
+			m[k] = v
+		} else if vm, ok := v.(map[string]any); ok {
 			SubstituteValuesInMap(vm, f, append(path, k))
-			m[k] = vm
+			m[k1] = vm
 		} else if vArr, ok := v.([]any); ok {
 			SubstituteValuesInArray(vArr, f, append(path, k))
-			m[k] = vArr
+			m[k1] = vArr
 		} else if vStr, ok := v.(string); ok {
-			m[k] = f(vStr, append(path, k))
+			m[k1] = f(vStr, append(path, k))
 		} else {
-			m[k] = v
+			m[k1] = v
 		}
 	}
 }
