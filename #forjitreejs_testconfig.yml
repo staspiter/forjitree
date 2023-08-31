@@ -27,6 +27,7 @@ server:
     "GET|WatchCircles":
       object: ActionWatch
       websocket: true # Websocket upgrade
+      websocketInterval: 250
       query:
         circles: null
 
@@ -49,6 +50,13 @@ server:
             x: :random({number:1,500})
             y: :random({number:1,500})
             color: gray
+
+    "GET|DeleteCircle/:circleId":
+      object: ActionSet
+      mergeInput: false
+      query:
+        circles:
+          ":Params.circleId": null
 
     "GET|res/:filename":
       object: ActionResourceGet
@@ -96,18 +104,21 @@ server:
                   modifiers: [],
                   autoScroll: true,
                   listeners: {
-                    move: (event) => {
+                    move(event) {
                       var x = (parseFloat(event.target.getAttribute('data-x')) || 0) + event.dx
                       var y = (parseFloat(event.target.getAttribute('data-y')) || 0) + event.dy
                       event.target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
                       event.target.setAttribute('data-x', x)
                       event.target.setAttribute('data-y', y)
                     },
-                    end (event) {
+                    end(event) {
                       fetch('/MoveCircle/' + self.node.Name() + '?x=' + event.target.getAttribute('data-x') + '&y=' + event.target.getAttribute('data-y'))
                     }
                   }
                 })
+              this.element.addEventListener("dblclick", (event) => {
+                fetch('/DeleteCircle/' + self.node.Name())
+              })
             }
 
             Updated(key, value) {

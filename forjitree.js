@@ -135,7 +135,7 @@ class ForjiNode {
         let modified = false
         let modifiedSubnodes = []
 
-        if (typeof d === 'object' && d !== null) {
+        if (d !== null && typeof d === 'object') {
             modified = this.setNodeType(NodeType.Map)
             for (const [k, v] of Object.entries(d)) {
                 let n = this.m[k]
@@ -147,7 +147,7 @@ class ForjiNode {
                 modifiedSubnodes = modifiedSubnodes.concat(n.patch(v))
             }
 
-        } else if (d.constructor === Array) {
+        } else if (d !== null && d.constructor === Array) {
             modified = this.setNodeType(NodeType.Slice)
             for (let i = 0; i < d.length; i++) {
                 let v = d[i]
