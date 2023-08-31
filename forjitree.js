@@ -1,8 +1,8 @@
-class Tree {
+class ForjiTree {
 
     constructor() {
         this.objectTypes = {}
-        this.rootNode = new Node(this, null, "")
+        this.rootNode = new ForjiNode(this, null, "")
         this.created = false
         this.modified = false
     }
@@ -16,7 +16,7 @@ class Tree {
 
     Clear() {
         this.rootNode.destroyObject(true)
-        this.rootNode = new Node(this, null, "")
+        this.rootNode = new ForjiNode(this, null, "")
         this.created = false
         this.modified = true
     }
@@ -86,7 +86,7 @@ const NodeType = {
 
 const ObjectKeyword = "object"
 
-class Node {
+class ForjiNode {
 
     constructor(tree, parent, parentKey) {
         this.tree = tree
@@ -140,7 +140,7 @@ class Node {
             for (const [k, v] of Object.entries(d)) {
                 let n = this.m[k]
                 if (!n) {
-                    n = new Node(this.tree, this, k)
+                    n = new ForjiNode(this.tree, this, k)
                     this.m[k] = n
                     modified = true
                 }
@@ -152,7 +152,7 @@ class Node {
             for (let i = 0; i < d.length; i++) {
                 let v = d[i]
                 if (this.sl.length <= i) {
-                    let n = new Node(this.tree, this, i)
+                    let n = new ForjiNode(this.tree, this, i)
                     this.sl.push(n)
                     modified = true
                 }
@@ -572,7 +572,7 @@ class DatasourceClient {
         this.node = node
         this.websocket = false
         this.url = ""
-        this.Tree = new Tree()
+        this.Tree = new ForjiTree()
     }
 
     Created() {
