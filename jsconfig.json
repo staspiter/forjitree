@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2020",
+    "checkJs": true
+  },
+  "include": [
+    "forjitree.js"
+  ]
+}

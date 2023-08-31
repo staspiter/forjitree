@@ -47,8 +47,14 @@ class Tree {
             this.modified = true
     }
 
-    AddType(objectClass, name) {
-        this.objectTypes[name] = new ObjectType(objectClass, name)
+    AddType(objectClass) {
+        let className = getClassName(objectClass)
+        this.objectTypes[className] = new ObjectType(objectClass, className)
+    }
+
+    AddTypes(...objectClasses) {
+        for (const t of objectClasses)
+            this.AddType(t)
     }
 
     GetType(name) {
@@ -553,6 +559,13 @@ function GetObj(nodes) {
     return null
 }
 
+function getClassName(c) {
+    let match = /class\s+(?<classname>.+)\s+{/mg.exec(c.toString())
+    if (match !== null)
+        return match.groups.classname.replace(/ .*/,'') // Get the first word to exclude "extends..."
+    return null
+}
+
 class DatasourceClient {
 
     constructor(node) {
@@ -565,7 +578,7 @@ class DatasourceClient {
     Created() {
         if (this.websocket) {
             this.watcherId = crypto.randomUUID()
-            this.socket = new WebSocket(this.url + "/" + this.watcherId)
+            this.socket = new WebSocket(this.url + "?watcherId=" + this.watcherId)
             this.socket.onmessage = (event) => {
                 let data = JSON.parse(event.data)
                 this.Tree.Set(data)

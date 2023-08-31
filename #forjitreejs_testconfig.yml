@@ -16,7 +16,7 @@ server:
   schema:
     object: Schema
 
-    "GET|WatchCircles/:watcherId":
+    "GET|WatchCircles":
       object: ActionWatch
       websocket: true
       query:
@@ -42,7 +42,7 @@ server:
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Forjitree JS</title>
+          <title>Circles</title>
           <script src="/res/forjitree.js"></script>
         </head>
         <body>
@@ -50,16 +50,28 @@ server:
           class Circle {
             constructor(node) {
               this.node = node
+              console.log('Circle initialized')
+            }
+
+            Created() {
               console.log('Circle created')
+            }
+
+            CreatedChildren() {
+              console.log('Circle children created')
             }
 
             Updated(key, value) {
               console.log('Circle updated')
             }
+
+            Destroyed() {
+              console.log('Circle destroyed')
+            }
           }
 
           let Config = new DatasourceClient(null)
-          Config.Tree.AddType(Circle, 'Circle')
+          Config.Tree.AddType(Circle)
           Config.websocket = true
           Config.url = "wss://training.place/WatchCircles"
           Config.Created()
