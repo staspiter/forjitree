@@ -573,22 +573,40 @@ class DatasourceClient {
         this.websocket = false
         this.url = ""
         this.Tree = new ForjiTree()
+        this.watcherId = crypto.randomUUID()
+        this.reconnectTimer = null
     }
 
     Created() {
-        if (this.websocket) {
-            this.watcherId = crypto.randomUUID()
-            this.socket = new WebSocket(this.url + "?watcherId=" + this.watcherId)
-            this.socket.onmessage = (event) => {
-                let data = JSON.parse(event.data)
-                this.Tree.Set(data)
-                console.log(data)
-            }
-            
-        } else {
+        if (this.websocket)
+            this.Connect()
+        else
             fetch(this.url)
                 .then(response => response.json())
                 .then(data => this.Tree.Set(data))
+    }
+
+    Connect() {
+        let self = this
+
+        this.socket = new WebSocket(this.url + "?watcherId=" + this.watcherId)
+        this.socket.onopen = (event) => {
+            if (self.reconnectTimer != null) {
+                clearInterval(self.reconnectTimer)
+                self.reconnectTimer = null
+            }                
+        }
+        this.socket.onmessage = (event) => {
+            let data = JSON.parse(event.data)
+            self.Tree.Set(data)
+        }
+        this.socket.onclose = (event) => {
+            if (self.reconnectTimer == null)
+                self.reconnectTimer = setInterval(() => { self.Connect() }, 2000)
+        }
+        this.socket.onerror = (error) => {
+            if (self.reconnectTimer == null)
+                self.reconnectTimer = setInterval(() => { self.Connect() }, 2000)
         }
     }
 
