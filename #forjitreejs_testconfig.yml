@@ -8,12 +8,14 @@ folderDatasource:
     circles:
       first_circle:
         object: Circle
-        x: 0
-        y: 0
+        x: 100
+        y: 100
+        color: blue
       second_circle:
         object: Circle
-        x: 0
-        y: 0
+        x: 300
+        y: 200
+        color: green
 
 server:
   object: Server
@@ -24,7 +26,7 @@ server:
 
     "GET|WatchCircles":
       object: ActionWatch
-      websocket: true
+      websocket: true # Websocket upgrade
       query:
         circles: null
 
@@ -34,8 +36,19 @@ server:
       query:
         circles:
           ":Params.circleId":
+            x: :Params.x
+            y: :Params.y
+
+    "GET|NewCircle":
+      object: ActionSet
+      mergeInput: false
+      query:
+        circles:
+          ":random({uuid})":
+            object: Circle
             x: :random({number:1,500})
             y: :random({number:1,500})
+            color: gray
 
     "GET|res/:filename":
       object: ActionResourceGet
@@ -51,29 +64,63 @@ server:
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Circles</title>
           <script src="/res/forjitree.js"></script>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/interact.js/1.10.18/interact.js"></script>
         </head>
         <body>
+        <style>
+          html, body {
+            width: 100%;
+            height: 100%;
+          }
+          .circle {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            touch-action: none;
+          }
+        </style>
         <script>
           class Circle {
             constructor(node) {
+              let self = this
               this.node = node
-              console.log('Circle initialized')
-            }
+              this.element = document.createElement('div')
+              this.element.className = 'circle'
+              this.element.style.background = this.color
+              document.body.appendChild(this.element)
 
-            Created() {
-              console.log('Circle created')
-            }
-
-            CreatedChildren() {
-              console.log('Circle children created')
+              interact(this.element)
+                .draggable({
+                  inertia: true,
+                  modifiers: [],
+                  autoScroll: true,
+                  listeners: {
+                    move: (event) => {
+                      var x = (parseFloat(event.target.getAttribute('data-x')) || 0) + event.dx
+                      var y = (parseFloat(event.target.getAttribute('data-y')) || 0) + event.dy
+                      event.target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
+                      event.target.setAttribute('data-x', x)
+                      event.target.setAttribute('data-y', y)
+                    },
+                    end (event) {
+                      fetch('/MoveCircle/' + self.node.Name() + '?x=' + event.target.getAttribute('data-x') + '&y=' + event.target.getAttribute('data-y'))
+                    }
+                  }
+                })
             }
 
             Updated(key, value) {
-              console.log('Circle updated')
+              if (!this.element)
+                return
+              this.element.setAttribute('data-x', this.x)
+              this.element.setAttribute('data-y', this.y)
+              this.element.style.transform = 'translate(' + this.x + 'px, ' + this.y + 'px)'
+              this.element.style.background = this.color
             }
 
             Destroyed() {
-              console.log('Circle destroyed')
+              this.element.remove()
             }
           }
 
@@ -82,6 +129,13 @@ server:
           Config.websocket = true
           Config.url = "wss://training.place/WatchCircles"
           Config.Created()
+
+          let NewCircleButton = document.createElement('button')
+          NewCircleButton.innerText = 'New Circle'
+          NewCircleButton.addEventListener('click', () => {
+            fetch('/NewCircle')
+          })
+          document.body.appendChild(NewCircleButton)
         </script>
         </body>
         </html>
