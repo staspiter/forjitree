@@ -168,6 +168,8 @@ func SubstituteValuesInMap(m map[string]any, f func(string, []string) any, path 
 			m[k] = vArr
 		} else if vStr, ok := v.(string); ok {
 			m[k] = f(vStr, append(path, k))
+		} else {
+			m[k] = v
 		}
 	}
 }
