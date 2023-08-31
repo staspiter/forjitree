@@ -202,7 +202,7 @@ class ForjiNode {
                 for (const [k, v] of Object.entries(this.m)) {
                     if (k == ObjectKeyword)
                         continue
-                    this.objType.setField(this, k, v.getValue(), false)
+                    this.objType.setField(this, k, v.getValue())
                 }
 
                 this.callObjFunc('Created')
@@ -211,7 +211,7 @@ class ForjiNode {
         }
 
         if (this.parent != null && this.parent.nodeType == NodeType.Map && this.parent.objType != null && this.parentKey != ObjectKeyword)
-            this.parent.objType.setField(this.parent, this.parentKey, this.getValue(), true)
+            this.parent.objType.setField(this.parent, this.parentKey, this.getValue())
         
         return createdObj
     }
@@ -427,10 +427,10 @@ class ObjectType {
         return new this.objectClass(node)
     }
 
-    setField(node, key, value, callUpdated) {
+    setField(node, key, value) {
         node.obj[key] = value
         
-        if (callUpdated && node.obj["Updated"] && typeof node.obj["Updated"] === "function")
+        if (node.obj["Updated"] && typeof node.obj["Updated"] === "function")
             node.obj["Updated"](key, value)
     }
 
