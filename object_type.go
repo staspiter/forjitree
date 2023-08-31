@@ -56,7 +56,7 @@ func (t *ObjectType) createObject(node Node) Object {
 	return t.newObjectFunc(node)
 }
 
-func (t *ObjectType) setField(n *node, fieldName string, fieldValue any, callUpdated bool) {
+func (t *ObjectType) setField(n *node, fieldName string, fieldValue any) {
 	f := n.objReflect.Elem().FieldByName(Capitalize(fieldName))
 	if f.IsValid() && f.CanSet() {
 		if fieldValue != nil && reflect.TypeOf(fieldValue).AssignableTo(f.Type()) {
@@ -64,15 +64,13 @@ func (t *ObjectType) setField(n *node, fieldName string, fieldValue any, callUpd
 		}
 	}
 
-	if callUpdated {
-		m := n.objReflect.MethodByName("Updated")
-		if m.IsValid() && !m.IsZero() {
-			if fieldValue == nil {
-				// A workaround for nil values, because reflect.Value does not support nil values
-				m.Call([]reflect.Value{reflect.ValueOf(fieldName), NilReflectValue})
-			} else {
-				m.Call([]reflect.Value{reflect.ValueOf(fieldName), reflect.ValueOf(fieldValue)})
-			}
+	m := n.objReflect.MethodByName("Updated")
+	if m.IsValid() && !m.IsZero() {
+		if fieldValue == nil {
+			// A workaround for nil values, because reflect.Value does not support nil values
+			m.Call([]reflect.Value{reflect.ValueOf(fieldName), NilReflectValue})
+		} else {
+			m.Call([]reflect.Value{reflect.ValueOf(fieldName), reflect.ValueOf(fieldValue)})
 		}
 	}
 }

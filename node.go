@@ -190,7 +190,7 @@ func (n *node) synchronize() bool {
 					continue
 				}
 				n.mu.RUnlock()
-				n.objType.setField(n, k, v.getValue(), false)
+				n.objType.setField(n, k, v.getValue())
 				n.mu.RLock()
 			}
 			n.mu.RUnlock()
@@ -201,7 +201,7 @@ func (n *node) synchronize() bool {
 	}
 
 	if n.parent != nil && n.parent.nodeType == NodeTypeMap && n.parent.objType != nil && n.parentKey != ObjectKeyword {
-		n.parent.objType.setField(n.parent, n.parentKey, n.getValue(), true)
+		n.parent.objType.setField(n.parent, n.parentKey, n.getValue())
 	}
 
 	return createdObj
