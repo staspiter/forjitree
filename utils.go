@@ -144,50 +144,32 @@ func GetValueFromMap(m map[string]any, path []string) any {
 	return nil
 }
 
-func SubstituteValuesInArrayUsingFunction(m []any, f func(string, []string) any, path []string) {
+func SubstituteValuesInArray(m []any, f func(string, []string) any, path []string) {
 	for i := 0; i < len(m); i++ {
 		if vm, ok := m[i].(map[string]any); ok {
-			SubstituteValuesInMapUsingFunction(vm, f, append(path, strconv.Itoa(i)))
+			SubstituteValuesInMap(vm, f, append(path, strconv.Itoa(i)))
 		} else if vArr, ok := m[i].([]any); ok {
-			SubstituteValuesInArrayUsingFunction(vArr, f, append(path, strconv.Itoa(i)))
+			SubstituteValuesInArray(vArr, f, append(path, strconv.Itoa(i)))
 		} else if vStr, ok := m[i].(string); ok {
 			m[i] = f(vStr, append(path, strconv.Itoa(i)))
 		}
 	}
 }
 
-func SubstituteValuesInMapUsingFunction(m map[string]any, f func(string, []string) any, path []string) {
+func SubstituteValuesInMap(m map[string]any, f func(string, []string) any, path []string) {
 	for k, v := range m {
+		delete(m, k)
+		k = f(k, append(path, k)).(string)
 		if vm, ok := v.(map[string]any); ok {
-			SubstituteValuesInMapUsingFunction(vm, f, append(path, k))
+			SubstituteValuesInMap(vm, f, append(path, k))
+			m[k] = vm
 		} else if vArr, ok := v.([]any); ok {
-			SubstituteValuesInArrayUsingFunction(vArr, f, append(path, k))
+			SubstituteValuesInArray(vArr, f, append(path, k))
+			m[k] = vArr
 		} else if vStr, ok := v.(string); ok {
 			m[k] = f(vStr, append(path, k))
 		}
 	}
-}
-
-func SubstituteValuesInArray(m []any, substitutes map[string]any) {
-	SubstituteValuesInArrayUsingFunction(m, func(s string, path []string) any {
-		if strings.HasPrefix(s, ":") {
-			if substitute, ok := substitutes[strings.TrimPrefix(s, ":")]; ok {
-				return substitute
-			}
-		}
-		return s
-	}, nil)
-}
-
-func SubstituteValuesInMap(m map[string]any, substitutes map[string]any) {
-	SubstituteValuesInMapUsingFunction(m, func(s string, path []string) any {
-		if strings.HasPrefix(s, ":") {
-			if substitute, ok := substitutes[strings.TrimPrefix(s, ":")]; ok {
-				return substitute
-			}
-		}
-		return s
-	}, nil)
 }
 
 func Capitalize(str string) string {
