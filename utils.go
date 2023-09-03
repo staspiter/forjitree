@@ -160,7 +160,7 @@ func SubstituteValuesInArray(m []any, f func(string, []string) any, path []strin
 func SubstituteValuesInMap(m map[string]any, f func(string, []string) any, path []string) {
 	for k, v := range m {
 		delete(m, k)
-		k1 := fmt.Sprintf("%s", f(k, append(path, k)))
+		k1 := fmt.Sprintf("%v", f(k, append(path, k)))
 		if vm, ok := v.(map[string]any); ok {
 			SubstituteValuesInMap(vm, f, append(path, k))
 			m[k1] = vm
