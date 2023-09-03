@@ -104,6 +104,10 @@ func (n *node) getValue() any {
 }
 
 func (n *node) query(q any) (any, error) {
+	if q == nil {
+		return n.getValue(), nil
+	}
+
 	if n.nodeType == NodeTypeSlice {
 		qMap := EnsureMapAny(q)
 		if qMap == nil {
