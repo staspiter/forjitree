@@ -1,6 +1,7 @@
 package forjitree
 
 import (
+	"errors"
 	"reflect"
 	"strconv"
 	"strings"
@@ -34,6 +35,7 @@ type node struct {
 type Node interface {
 	Get(key string, postprocess bool) []Node
 	Set(newValue any)
+	Query(q any) (any, error)
 	Value() any
 	Parent() Node
 	Root() Node
@@ -99,6 +101,51 @@ func (n *node) getValue() any {
 		return n.value
 	}
 	panic("invalid node type")
+}
+
+func (n *node) query(q any) (any, error) {
+	if n.nodeType == NodeTypeSlice {
+		qMap := EnsureMapAny(q)
+		if qMap == nil {
+			return nil, errors.New("subquery must be a map or null")
+		}
+
+		children := n.getChildren(false)
+		result := []any{}
+		for _, child := range children {
+			item, err := child.query(q)
+			if err == nil {
+				result = append(result, item)
+			}
+		}
+
+		return result, nil
+
+	} else if n.nodeType == NodeTypeMap {
+		qMap := EnsureMapAny(q)
+		if qMap == nil {
+			return nil, errors.New("subquery must be a map or null")
+		}
+
+		result := map[string]any{}
+		for k, v := range qMap {
+			child := n.getChild(k)
+			if child == nil {
+				result[k] = nil
+				continue
+			}
+			item, err := child.query(v)
+			if err == nil {
+				result[k] = item
+			}
+		}
+
+		return result, nil
+
+	} else {
+		// TODO: filtering functions similar to MySQLDatasource
+		return n.getValue(), nil
+	}
 }
 
 func (n *node) patch(data any) []*node {
@@ -435,6 +482,10 @@ func (n *node) Get(path string, postprocess bool) []Node {
 		result[i] = tempResult[i]
 	}
 	return result
+}
+
+func (n *node) Query(q any) (any, error) {
+	return n.query(q)
 }
 
 func (n *node) Value() any {
