@@ -544,18 +544,29 @@ function makePatchWithPath(path, object) {
     return m
 }
 
-function GetObjs(nodes) {
+function GetObjs(nodes, typeCheck = null) {
     let result = []
-    for (const n of nodes)
-        if (n.obj)
-            result.push(n.obj)
+    if (Array.isArray(nodes)) {
+        for (const n of nodes)
+            if (n.obj && (typeCheck == null || n.obj instanceof typeCheck))
+                result.push(n.obj)
+    } else {
+        if (nodes.obj && (typeCheck == null || nodes.obj instanceof typeCheck))
+            result.push(nodes.obj)
+    }
     return result
 }
 
-function GetObj(nodes) {
-    for (const n of nodes)
-        if (n.obj)
-            return n.obj
+function GetObj(nodes, typeCheck = null) {
+    if (Array.isArray(nodes)) {
+        for (const n of nodes)
+            if (n.obj && (typeCheck == null || n.obj instanceof typeCheck))
+                return n.obj        
+    } else {
+        if (nodes.obj && (typeCheck == null || nodes.obj instanceof typeCheck))
+            return nodes.obj
+    }
+
     return null
 }
 
