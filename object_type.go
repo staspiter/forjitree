@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"plugin"
 	"reflect"
+	"regexp"
+	"strings"
 )
 
 type ObjectType struct {
@@ -18,36 +20,43 @@ func NewObjectType(newObjectFunc NewObjectFunc, name string) *ObjectType {
 	}
 }
 
+var pluginRegex = regexp.MustCompile(`syms\:map\[(.*)\]`)
+
 func NewObjectTypesFromPlugin(pluginFilename string) ([]*ObjectType, error) {
 	p, err := plugin.Open(pluginFilename)
 	if err != nil {
 		return nil, fmt.Errorf("loading plugin error %s: %s", pluginFilename, err)
 	}
 
-	fmt.Printf("%+v\n", p)
+	pluginStr := fmt.Sprintf("%+v\n", p)
+	if !pluginRegex.MatchString(pluginStr) {
+		return nil, fmt.Errorf("loading plugin error %s: plugin does not contain syms:map[]", pluginFilename)
+	}
 
-	s, err := p.Lookup("GetTypes")
-	if err != nil {
-		return nil, fmt.Errorf("loading plugin error %s: GetTypes function was not found: %s", pluginFilename, err)
-	}
-	getTypesFunc, ok := s.(PluginsGetTypesFunc)
-	if !ok {
-		return nil, fmt.Errorf("loading plugin error %s: GetTypes function is invalid: %s", pluginFilename, err)
-	}
-	typeNames := getTypesFunc()
+	exportedFunctionsSubmatch := pluginRegex.FindStringSubmatch(pluginStr)
+	exportedFunctionsStr := exportedFunctionsSubmatch[1]
+	exportedFunctions := strings.Split(exportedFunctionsStr, " ")
 
 	objectTypes := []*ObjectType{}
-	for _, typeName := range typeNames {
-		s, err = p.Lookup("New" + typeName)
-		if err != nil {
-			return nil, fmt.Errorf("loading plugin error %s: New%s function was not found", typeName, typeName)
+	for _, exportedFunctionStr := range exportedFunctions {
+		exportedFunctionName := strings.Split(exportedFunctionStr, ":")[0]
+
+		if !strings.HasPrefix(exportedFunctionName, "New") {
+			continue
 		}
+
+		s, err := p.Lookup(exportedFunctionName)
+		if err != nil {
+			return nil, fmt.Errorf("loading plugin error %s: Could not lookup %s function", pluginFilename, exportedFunctionName)
+		}
+
 		newFunc, ok := s.(NewObjectFunc)
 		if !ok {
-			return nil, fmt.Errorf("loading plugin error %s: New%s function should match 'func() Object'", typeName, typeName)
+			return nil, fmt.Errorf("loading plugin error %s: %s function should match 'func() Object'", pluginFilename, exportedFunctionName)
 		}
+
 		objectTypes = append(objectTypes, &ObjectType{
-			Name:          typeName,
+			Name:          strings.TrimPrefix(exportedFunctionName, "New"),
 			newObjectFunc: newFunc,
 		})
 	}
