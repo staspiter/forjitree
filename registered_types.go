@@ -22,6 +22,9 @@ func (r *registeredTypesSingleton) GetTypes(types []string) ([]*ObjectType, erro
 	result := []*ObjectType{}
 	for _, t := range types {
 		t = strings.TrimSpace(t)
+		if t == "" {
+			continue
+		}
 		if ot, ok := r.types[t]; ok {
 			result = append(result, ot)
 		} else if types, ok := r.pluginTypes[t]; ok {
