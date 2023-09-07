@@ -23,6 +23,9 @@ func NewObjectTypesFromPlugin(pluginFilename string) ([]*ObjectType, error) {
 	if err != nil {
 		return nil, fmt.Errorf("loading plugin error %s: %s", pluginFilename, err)
 	}
+
+	fmt.Printf("%+v\n", p)
+
 	s, err := p.Lookup("GetTypes")
 	if err != nil {
 		return nil, fmt.Errorf("loading plugin error %s: GetTypes function was not found: %s", pluginFilename, err)
