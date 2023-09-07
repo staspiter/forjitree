@@ -1,10 +1,14 @@
 package forjitree
 
-import "strings"
+import (
+	"strings"
+	"sync"
+)
 
 type registeredTypesSingleton struct {
 	types       map[string]*ObjectType
 	pluginTypes map[string][]*ObjectType
+	mu          sync.Mutex
 }
 
 var RegisteredTypes = &registeredTypesSingleton{
@@ -13,12 +17,18 @@ var RegisteredTypes = &registeredTypesSingleton{
 }
 
 func (r *registeredTypesSingleton) RegisterType(newObjectFunc NewObjectFunc, name string) *ObjectType {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	t := NewObjectType(newObjectFunc, name)
 	r.types[name] = t
 	return t
 }
 
 func (r *registeredTypesSingleton) GetTypes(types []string) ([]*ObjectType, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	result := []*ObjectType{}
 	for _, t := range types {
 		t = strings.TrimSpace(t)
