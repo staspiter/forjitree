@@ -113,6 +113,17 @@ func (t *Tree) Watch(watcherId string) any {
 	}
 }
 
+func (t *Tree) AddTypes(typesStr string) error {
+	types, err := RegisteredTypes.GetTypesFromStr(typesStr)
+	if err != nil {
+		return err
+	}
+	for _, ot := range types {
+		t.objectTypes[ot.Name] = ot
+	}
+	return nil
+}
+
 func (t *Tree) AddType(newObjectFunc NewObjectFunc, name string) {
 	t.objectTypes[name] = NewObjectType(newObjectFunc, name)
 }
