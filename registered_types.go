@@ -21,6 +21,7 @@ func (r *registeredTypesSingleton) RegisterType(newObjectFunc NewObjectFunc, nam
 func (r *registeredTypesSingleton) GetTypes(types []string) ([]*ObjectType, error) {
 	result := []*ObjectType{}
 	for _, t := range types {
+		t = strings.TrimSpace(t)
 		if ot, ok := r.types[t]; ok {
 			result = append(result, ot)
 		} else if types, ok := r.pluginTypes[t]; ok {
