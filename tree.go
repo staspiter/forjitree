@@ -6,11 +6,11 @@ import (
 )
 
 type Tree struct {
-	objectTypes  map[string]*ObjectType
-	rootNode     *node
-	created      bool
-	modified     bool
-	externalPath string
+	objectTypes map[string]*ObjectType
+	rootNode    *node
+	created     bool
+	modified    bool
+	name        string
 
 	watchers               map[string]*watcher
 	watchersMutex          sync.Mutex
@@ -159,10 +159,10 @@ func (t *Tree) ResetModified() {
 	t.modified = false
 }
 
-func (t *Tree) SetExternalPath(path string) {
-	t.externalPath = path
+func (t *Tree) SetName(path string) {
+	t.name = path
 }
 
-func (t *Tree) GetExternalPath() string {
-	return t.externalPath
+func (t *Tree) GetName() string {
+	return t.name
 }
