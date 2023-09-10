@@ -505,6 +505,9 @@ func (n *node) Root() Node {
 }
 
 func (n *node) Name() string {
+	if n.parent == nil {
+		return n.tree.externalPath
+	}
 	return n.parentKey
 }
 
