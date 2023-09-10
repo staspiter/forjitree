@@ -11,6 +11,7 @@ type Tree struct {
 	created     bool
 	modified    bool
 	name        string
+	datasource  Datasource
 
 	watchers               map[string]*watcher
 	watchersMutex          sync.Mutex
@@ -165,4 +166,12 @@ func (t *Tree) SetName(path string) {
 
 func (t *Tree) GetName() string {
 	return t.name
+}
+
+func (t *Tree) SetDatasource(datasource Datasource) {
+	t.datasource = datasource
+}
+
+func (t *Tree) GetDatasource() Datasource {
+	return t.datasource
 }
