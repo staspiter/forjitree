@@ -2,7 +2,6 @@ package forjitree
 
 import (
 	"errors"
-	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -507,11 +506,7 @@ func (n *node) Root() Node {
 
 func (n *node) Name() string {
 	if n.parent == nil {
-		pathName := filepath.Base(n.tree.externalPath)
-		if pathName == "." {
-			return ""
-		}
-		return pathName
+		return n.tree.externalPath
 	}
 	return n.parentKey
 }
