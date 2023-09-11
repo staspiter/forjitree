@@ -2,6 +2,7 @@ package forjitree
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -169,6 +170,7 @@ func (n *node) patch(data any) []*node {
 			n.mu.Unlock()
 			modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
 		}
+
 	case []any:
 		modified = n.setNodeType(NodeTypeSlice)
 		appendArrayMode := false
@@ -188,6 +190,7 @@ func (n *node) patch(data any) []*node {
 				n.mu.Unlock()
 				modified = true
 				modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
+				fmt.Println("appendArray, new length =", len(n.sl))
 			}
 		} else {
 			for i, v := range d {
