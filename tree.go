@@ -6,12 +6,13 @@ import (
 )
 
 type Tree struct {
-	objectTypes map[string]*ObjectType
-	rootNode    *node
-	created     bool
-	modified    bool
-	name        string
-	datasource  Datasource
+	objectTypes    map[string]*ObjectType
+	rootNode       *node
+	created        bool
+	modified       bool
+	name           string
+	datasource     Datasource
+	preprocessData bool
 
 	watchers               map[string]*watcher
 	watchersMutex          sync.Mutex
@@ -27,6 +28,7 @@ func New() *Tree {
 		watchers:               make(map[string]*watcher),
 		watchersCleanTimestamp: time.Now(),
 		watchersCleanInterval:  60,
+		preprocessData:         false,
 	}
 	t.rootNode = newNode(t, nil, "")
 	return t
@@ -174,4 +176,12 @@ func (t *Tree) SetDatasource(datasource Datasource) {
 
 func (t *Tree) GetDatasource() Datasource {
 	return t.datasource
+}
+
+func (t *Tree) SetPreprocessData(preprocessData bool) {
+	t.preprocessData = preprocessData
+}
+
+func (t *Tree) GetPreprocessData() bool {
+	return t.preprocessData
 }

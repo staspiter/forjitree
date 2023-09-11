@@ -174,7 +174,7 @@ func (n *node) patch(data any) []*node {
 	case []any:
 		modified = n.setNodeType(NodeTypeSlice)
 		appendArrayMode := false
-		if len(d) > 0 {
+		if n.tree.preprocessData && len(d) > 0 {
 			if dStr, dIsStr := d[0].(string); dIsStr {
 				appendArrayMode = dStr == "appendArray"
 			}
