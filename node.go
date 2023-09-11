@@ -34,7 +34,7 @@ type node struct {
 
 type Node interface {
 	Get(key string, postprocess bool) []Node
-	Set(newValue any, preprocess bool)
+	Set(newValue any)
 	Query(q any) (any, error)
 	Value() any
 	Parent() Node
@@ -152,7 +152,7 @@ func (n *node) query(q any) (any, error) {
 	}
 }
 
-func (n *node) patch(data any, preprocess bool) []*node {
+func (n *node) patch(data any) []*node {
 	modified := false
 	modifiedSubnodes := []*node{}
 
@@ -167,7 +167,7 @@ func (n *node) patch(data any, preprocess bool) []*node {
 			}
 			subnode := n.m[k]
 			n.mu.Unlock()
-			modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v, preprocess)...)
+			modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
 		}
 
 	case []any:
@@ -175,7 +175,7 @@ func (n *node) patch(data any, preprocess bool) []*node {
 
 		// Check if we are in appendArray mode
 		appendArrayMode := false
-		if preprocess && len(d) > 0 {
+		if len(d) > 0 {
 			firstItem := d[0]
 			if firstItemMap, firstItemIsMap := firstItem.(map[string]any); firstItemIsMap {
 				if _, firstItemIsMapWithAppendArray := firstItemMap["appendArray"]; firstItemIsMapWithAppendArray {
@@ -191,7 +191,7 @@ func (n *node) patch(data any, preprocess bool) []*node {
 				n.sl = append(n.sl, subnode)
 				n.mu.Unlock()
 				modified = true
-				modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v, preprocess)...)
+				modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
 			}
 		} else {
 			for i, v := range d {
@@ -202,7 +202,7 @@ func (n *node) patch(data any, preprocess bool) []*node {
 				}
 				subnode := n.sl[i]
 				n.mu.Unlock()
-				modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v, preprocess)...)
+				modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
 			}
 			if len(n.sl) > len(d) {
 				n.mu.Lock()
@@ -547,8 +547,8 @@ func (n *node) Tree() *Tree {
 	return n.tree
 }
 
-func (n *node) Set(newValue any, preprocess bool) {
-	n.tree.Set(MakePatchWithPath(strings.TrimPrefix(n.Path(), "/"), newValue, false), preprocess)
+func (n *node) Set(newValue any) {
+	n.tree.Set(MakePatchWithPath(strings.TrimPrefix(n.Path(), "/"), newValue, false))
 }
 
 func (n *node) NodeType() int {

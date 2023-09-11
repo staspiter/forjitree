@@ -52,8 +52,8 @@ func (t *Tree) GetValue() any {
 	return t.rootNode.getValue()
 }
 
-func (t *Tree) Set(data any, preprocess bool) {
-	modifiedNodes := t.rootNode.patch(data, preprocess)
+func (t *Tree) Set(data any) {
+	modifiedNodes := t.rootNode.patch(data)
 
 	// Call synchronize for modified nodes
 	createdObjects := []*node{}
