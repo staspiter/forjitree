@@ -135,7 +135,7 @@ class ForjiNode {
         let modified = false
         let modifiedSubnodes = []
 
-        if (d !== null && typeof d === 'object') {
+        if (d !== null && typeof d === 'object' && !Array.isArray(d)) {
             modified = this.setNodeType(NodeType.Map)
             for (const [k, v] of Object.entries(d)) {
                 let n = this.m[k]
@@ -147,7 +147,7 @@ class ForjiNode {
                 modifiedSubnodes = modifiedSubnodes.concat(n.patch(v))
             }
 
-        } else if (d !== null && d.constructor === Array) {
+        } else if (d !== null && Array.isArray(d)) {
             modified = this.setNodeType(NodeType.Slice)
 
             // Check if we are in appendArray mode
