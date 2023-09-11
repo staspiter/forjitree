@@ -149,21 +149,32 @@ class ForjiNode {
 
         } else if (d !== null && d.constructor === Array) {
             modified = this.setNodeType(NodeType.Slice)
-            for (let i = 0; i < d.length; i++) {
-                let v = d[i]
-                if (this.sl.length <= i) {
-                    let n = new ForjiNode(this.tree, this, i)
+            let appendArrayMode = d.length > 0 && d[0] == "appendArray"
+            if (appendArrayMode) {
+                for (let i = 1; i < d.length; i++) {
+                    let v = d[i]
+                    let n = new ForjiNode(this.tree, this, this.sl.length)
                     this.sl.push(n)
                     modified = true
+                    modifiedSubnodes = modifiedSubnodes.concat(n.patch(v))
                 }
-                let n = this.sl[i]
-                modifiedSubnodes = modifiedSubnodes.concat(n.patch(v))
-            }
-            if (this.sl.length > d.length) {
-                for (let i = d.length; i < this.sl.length; i++)
-                    this.sl[i].destroyObject(true)
-                this.sl = this.sl.slice(0, d.length)
-                modified = true
+            } else {
+                for (let i = 0; i < d.length; i++) {
+                    let v = d[i]
+                    if (this.sl.length <= i) {
+                        let n = new ForjiNode(this.tree, this, i)
+                        this.sl.push(n)
+                        modified = true
+                    }
+                    let n = this.sl[i]
+                    modifiedSubnodes = modifiedSubnodes.concat(n.patch(v))
+                }
+                if (this.sl.length > d.length) {
+                    for (let i = d.length; i < this.sl.length; i++)
+                        this.sl[i].destroyObject(true)
+                    this.sl = this.sl.slice(0, d.length)
+                    modified = true
+                }                
             }
 
         } else {

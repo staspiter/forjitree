@@ -171,27 +171,43 @@ func (n *node) patch(data any) []*node {
 		}
 	case []any:
 		modified = n.setNodeType(NodeTypeSlice)
-		for i, v := range d {
-			n.mu.Lock()
-			if len(n.sl) <= i {
-				n.sl = append(n.sl, newNode(n.tree, n, strconv.Itoa(i)))
+		appendArrayMode := len(d) > 0 && d[0].(string) == "appendArray"
+		if appendArrayMode {
+			for i, v := range d {
+				if i == 0 {
+					continue
+				}
+				n.mu.Lock()
+				subnode := newNode(n.tree, n, strconv.Itoa(len(n.sl)))
+				n.sl = append(n.sl, subnode)
+				n.mu.Unlock()
+				modified = true
+				modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
+			}
+		} else {
+			for i, v := range d {
+				n.mu.Lock()
+				if len(n.sl) <= i {
+					n.sl = append(n.sl, newNode(n.tree, n, strconv.Itoa(i)))
+					modified = true
+				}
+				subnode := n.sl[i]
+				n.mu.Unlock()
+				modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
+			}
+			if len(n.sl) > len(d) {
+				n.mu.Lock()
+				slCopy := make([]*node, len(n.sl))
+				copy(slCopy, n.sl)
+				n.sl = n.sl[:len(d)]
+				n.mu.Unlock()
+				for i := len(d); i < len(slCopy); i++ {
+					slCopy[i].destroyObject(true)
+				}
 				modified = true
 			}
-			subnode := n.sl[i]
-			n.mu.Unlock()
-			modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
 		}
-		if len(n.sl) > len(d) {
-			n.mu.Lock()
-			slCopy := make([]*node, len(n.sl))
-			copy(slCopy, n.sl)
-			n.sl = n.sl[:len(d)]
-			n.mu.Unlock()
-			for i := len(d); i < len(slCopy); i++ {
-				slCopy[i].destroyObject(true)
-			}
-			modified = true
-		}
+
 	default:
 		modified = n.setNodeType(NodeTypeValue)
 		n.mu.Lock()
