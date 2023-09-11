@@ -2,7 +2,6 @@ package forjitree
 
 import (
 	"errors"
-	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -193,7 +192,6 @@ func (n *node) patch(data any, preprocess bool) []*node {
 				n.mu.Unlock()
 				modified = true
 				modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v, preprocess)...)
-				fmt.Println("appendArray, new length =", len(n.sl))
 			}
 		} else {
 			for i, v := range d {
