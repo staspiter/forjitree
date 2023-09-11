@@ -171,7 +171,12 @@ func (n *node) patch(data any) []*node {
 		}
 	case []any:
 		modified = n.setNodeType(NodeTypeSlice)
-		appendArrayMode := len(d) > 0 && d[0].(string) == "appendArray"
+		appendArrayMode := false
+		if len(d) > 0 {
+			if dStr, dIsStr := d[0].(string); dIsStr {
+				appendArrayMode = dStr == "appendArray"
+			}
+		}
 		if appendArrayMode {
 			for i, v := range d {
 				if i == 0 {
