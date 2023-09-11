@@ -35,7 +35,7 @@ type node struct {
 
 type Node interface {
 	Get(key string, postprocess bool) []Node
-	Set(newValue any)
+	Set(newValue any, preprocess bool)
 	Query(q any) (any, error)
 	Value() any
 	Parent() Node
@@ -153,7 +153,7 @@ func (n *node) query(q any) (any, error) {
 	}
 }
 
-func (n *node) patch(data any) []*node {
+func (n *node) patch(data any, preprocess bool) []*node {
 	modified := false
 	modifiedSubnodes := []*node{}
 
@@ -168,28 +168,31 @@ func (n *node) patch(data any) []*node {
 			}
 			subnode := n.m[k]
 			n.mu.Unlock()
-			modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
+			modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v, preprocess)...)
 		}
 
 	case []any:
 		modified = n.setNodeType(NodeTypeSlice)
+
+		// Check if we are in appendArray mode
 		appendArrayMode := false
-		if n.tree.preprocessData && len(d) > 0 {
-			if dStr, dIsStr := d[0].(string); dIsStr {
-				appendArrayMode = dStr == "appendArray"
+		if preprocess && len(d) > 0 {
+			firstItem := d[0]
+			if firstItemMap, firstItemIsMap := firstItem.(map[string]any); firstItemIsMap {
+				if _, firstItemIsMapWithAppendArray := firstItemMap["appendArray"]; firstItemIsMapWithAppendArray {
+					appendArrayMode = true
+				}
 			}
 		}
+
 		if appendArrayMode {
-			for i, v := range d {
-				if i == 0 {
-					continue
-				}
+			for _, v := range d {
 				n.mu.Lock()
 				subnode := newNode(n.tree, n, strconv.Itoa(len(n.sl)))
 				n.sl = append(n.sl, subnode)
 				n.mu.Unlock()
 				modified = true
-				modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
+				modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v, preprocess)...)
 				fmt.Println("appendArray, new length =", len(n.sl))
 			}
 		} else {
@@ -201,7 +204,7 @@ func (n *node) patch(data any) []*node {
 				}
 				subnode := n.sl[i]
 				n.mu.Unlock()
-				modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
+				modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v, preprocess)...)
 			}
 			if len(n.sl) > len(d) {
 				n.mu.Lock()
@@ -546,8 +549,8 @@ func (n *node) Tree() *Tree {
 	return n.tree
 }
 
-func (n *node) Set(newValue any) {
-	n.tree.Set(MakePatchWithPath(strings.TrimPrefix(n.Path(), "/"), newValue, false))
+func (n *node) Set(newValue any, preprocess bool) {
+	n.tree.Set(MakePatchWithPath(strings.TrimPrefix(n.Path(), "/"), newValue, false), preprocess)
 }
 
 func (n *node) NodeType() int {

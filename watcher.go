@@ -24,7 +24,7 @@ func newWatcher(watcherId string) *watcher {
 
 func (w *watcher) collectChanges(changes any) {
 	w.mu.Lock()
-	w.tree.Set(changes)
+	w.tree.Set(changes, true)
 	w.mu.Unlock()
 }
 

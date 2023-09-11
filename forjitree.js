@@ -149,9 +149,12 @@ class ForjiNode {
 
         } else if (d !== null && d.constructor === Array) {
             modified = this.setNodeType(NodeType.Slice)
-            let appendArrayMode = d.length > 0 && d[0] == "appendArray"
+
+            // Check if we are in appendArray mode
+            let appendArrayMode = d.length > 0 && typeof d[0] === 'object' && d[0]["appendArray"]
+
             if (appendArrayMode) {
-                for (let i = 1; i < d.length; i++) {
+                for (let i = 0; i < d.length; i++) {
                     let v = d[i]
                     let n = new ForjiNode(this.tree, this, this.sl.length)
                     this.sl.push(n)
