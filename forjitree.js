@@ -591,7 +591,7 @@ function getClassName(c) {
     return null
 }
 
-class DatasourceClient {
+class ClientDatasource {
 
     constructor(node) {
         this.node = node
@@ -603,16 +603,24 @@ class DatasourceClient {
     }
 
     Created() {
-        if (this.websocket)
-            this.Connect()
-        else
-            fetch(this.url)
-                .then(response => response.json())
-                .then(data => this.Tree.Set(data))
+        this.Connect()
+    }
+
+    Destroyed() {
+        this.Disconnect()
+        this.Tree.Clear()
     }
 
     Connect() {
         let self = this
+
+        if (!this.websocket) {
+            // Request data only once
+            fetch(this.url)
+                .then(response => response.json())
+                .then(data => self.Tree.Set(data))
+            return
+        }
 
         this.socket = new WebSocket(this.url + "?watcherId=" + this.watcherId)
         this.socket.onopen = (event) => {
@@ -633,6 +641,15 @@ class DatasourceClient {
             if (self.reconnectTimer == null)
                 self.reconnectTimer = setInterval(() => { self.Connect() }, 2000)
         }
+    }
+
+    Disconnect() {
+        if (this.websocket) {
+            if (this.reconnectTimer)
+                clearInterval(this.reconnectTimer)
+            if (this.socket)
+                this.socket.close()
+        }        
     }
 
 }
