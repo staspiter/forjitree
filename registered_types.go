@@ -57,3 +57,14 @@ func (r *registeredTypesSingleton) GetTypes(types []string) ([]*ObjectType, erro
 func (r *registeredTypesSingleton) GetTypesFromStr(types string) ([]*ObjectType, error) {
 	return r.GetTypes(strings.Split(types, ","))
 }
+
+func (r *registeredTypesSingleton) GetAllNames() []string {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	result := []string{}
+	for t := range r.types {
+		result = append(result, t)
+	}
+	return result
+}
