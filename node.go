@@ -34,6 +34,7 @@ type node struct {
 
 type Node interface {
 	Get(key string, postprocess bool) []Node
+	GetOne(key string, postprocess bool) Node
 	Set(newValue any)
 	Query(q any) (any, error)
 	Value() any
@@ -511,6 +512,14 @@ func (n *node) Get(path string, postprocess bool) []Node {
 		result[i] = tempResult[i]
 	}
 	return result
+}
+
+func (n *node) GetOne(path string, postprocess bool) Node {
+	arr := n.Get(path, postprocess)
+	if len(arr) == 0 {
+		return nil
+	}
+	return arr[0]
 }
 
 func (n *node) Query(q any) (any, error) {

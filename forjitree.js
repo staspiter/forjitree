@@ -395,6 +395,13 @@ class ForjiNode {
         return tempResult
     }
 
+    GetOne(path, postProcess) {
+        let arr = this.Get(path, postProcess)
+        if (arr.length == 0)
+            return null
+        return arr[0]
+    }
+
     Value() {
         return this.getValue()
     }
