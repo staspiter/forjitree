@@ -68,3 +68,10 @@ func (r *registeredTypesSingleton) GetAllNames() []string {
 	}
 	return result
 }
+
+func (r *registeredTypesSingleton) IsTypeRegistered(typename string) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	_, exists := r.types[typename]
+	return exists
+}
