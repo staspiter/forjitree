@@ -1,7 +1,6 @@
 package forjitree
 
 import (
-	"fmt"
 	"sync"
 	"time"
 )
@@ -122,7 +121,6 @@ func (t *Tree) AddTypes(typesStr string) error {
 		return err
 	}
 	for _, ot := range types {
-		fmt.Println("Add type", ot.Name)
 		t.objectTypes[ot.Name] = ot
 	}
 	return nil
