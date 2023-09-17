@@ -1,6 +1,7 @@
 package forjitree
 
 import (
+	"path/filepath"
 	"strings"
 	"sync"
 )
@@ -35,19 +36,18 @@ func (r *registeredTypesSingleton) GetTypes(types []string) ([]*ObjectType, erro
 		if t == "" {
 			continue
 		}
+		pluginFilename := filepath.Base(t)
+
 		if ot, ok := r.types[t]; ok {
 			result = append(result, ot)
-		} else if types, ok := r.pluginTypes[t]; ok {
+		} else if types, ok := r.pluginTypes[pluginFilename]; ok {
 			result = append(result, types...)
 		} else {
 			types, err := NewObjectTypesFromPlugin(t)
 			if err != nil {
 				return nil, err
 			}
-			r.pluginTypes[t] = types
-			for _, ot := range types {
-				r.types[ot.Name] = ot
-			}
+			r.pluginTypes[pluginFilename] = types
 			result = append(result, types...)
 		}
 	}
@@ -73,5 +73,15 @@ func (r *registeredTypesSingleton) IsTypeRegistered(typename string) bool {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	_, exists := r.types[typename]
+	if !exists {
+		for _, types := range r.pluginTypes {
+			for _, t := range types {
+				if t.Name == typename {
+					exists = true
+					break
+				}
+			}
+		}
+	}
 	return exists
 }
