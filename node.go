@@ -44,6 +44,7 @@ type Node interface {
 	Path() string
 	Tree() *Tree
 	NodeType() int
+	internalNode() *node
 }
 
 func newNode(tree *Tree, parent *node, parentKey string) *node {
@@ -572,6 +573,10 @@ func (n *node) Set(newValue any) {
 
 func (n *node) NodeType() int {
 	return n.nodeType
+}
+
+func (n *node) internalNode() *node {
+	return n
 }
 
 func GetObjs[T any](nodes []Node) []T {

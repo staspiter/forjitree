@@ -95,7 +95,12 @@ func (t *ObjectType) callRedirect(n *node) []*node {
 	if m.IsValid() && !m.IsZero() {
 		callResult := m.Call(nil)
 		if len(callResult) == 1 {
-			return callResult[0].Interface().([]*node)
+			nodes := callResult[0].Interface().([]Node)
+			result := make([]*node, len(nodes))
+			for i, n2 := range nodes {
+				result[i] = n2.internalNode()
+			}
+			return result
 		} else {
 			return []*node{n}
 		}
