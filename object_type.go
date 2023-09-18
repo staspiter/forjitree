@@ -11,12 +11,15 @@ import (
 type ObjectType struct {
 	Name          string
 	newObjectFunc NewObjectFunc
+
+	redirect *bool
 }
 
 func NewObjectType(newObjectFunc NewObjectFunc, name string) *ObjectType {
 	return &ObjectType{
 		Name:          name,
 		newObjectFunc: newObjectFunc,
+		redirect:      nil,
 	}
 }
 
@@ -71,7 +74,22 @@ func (t *ObjectType) createObject(node Node) Object {
 func (t *ObjectType) setField(n *node, fieldName string, fieldValue any) {
 	f := n.objReflect.Elem().FieldByName(Capitalize(fieldName))
 	if f.IsValid() && f.CanSet() {
-		if fieldValue != nil && reflect.TypeOf(fieldValue).AssignableTo(f.Type()) {
+
+		fieldValueType := reflect.TypeOf(fieldValue)
+		fieldType := f.Type()
+
+		if fieldValue == nil && (fieldType.Kind() == reflect.Interface || fieldType.Kind() == reflect.Pointer || fieldType.Kind() == reflect.Map || fieldType.Kind() == reflect.Array) {
+			f.Set(NilReflectValue)
+
+		} else if (fieldValueType.Kind() == reflect.Int || fieldValueType.Kind() == reflect.Int64) && (fieldType.Kind() == reflect.Float32) {
+			// Allow float32 to int assignments with truncation
+			f.Set(reflect.ValueOf(int(fieldValue.(float32))))
+
+		} else if (fieldValueType.Kind() == reflect.Int || fieldValueType.Kind() == reflect.Int64) && (fieldType.Kind() == reflect.Float64) {
+			// Allow float32 to int assignments with truncation
+			f.Set(reflect.ValueOf(int(fieldValue.(float64))))
+
+		} else if fieldValue != nil && fieldValueType.AssignableTo(fieldType) {
 			f.Set(reflect.ValueOf(fieldValue))
 		}
 	}
@@ -91,19 +109,24 @@ func (t *ObjectType) setField(n *node, fieldName string, fieldValue any) {
 }
 
 func (t *ObjectType) callRedirect(n *node) []*node {
-	m := n.objReflect.MethodByName("Redirect")
-	if m.IsValid() && !m.IsZero() {
-		callResult := m.Call(nil)
-		if len(callResult) == 1 {
-			nodes := callResult[0].Interface().([]Node)
-			result := make([]*node, len(nodes))
-			for i, n2 := range nodes {
-				result[i] = n2.internalNode()
-			}
-			return result
-		} else {
-			return []*node{n}
+	var m reflect.Value
+
+	if t.redirect == nil || *t.redirect {
+		m = n.objReflect.MethodByName("Redirect")
+		var b bool = m.IsValid() && !m.IsZero()
+		t.redirect = &b
+	} else {
+		return []*node{n}
+	}
+
+	callResult := m.Call(nil)
+	if len(callResult) == 1 {
+		nodes := callResult[0].Interface().([]Node)
+		result := make([]*node, len(nodes))
+		for i, n2 := range nodes {
+			result[i] = n2.internalNode()
 		}
+		return result
 	} else {
 		return []*node{n}
 	}
