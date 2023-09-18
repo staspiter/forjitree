@@ -81,11 +81,11 @@ func (t *ObjectType) setField(n *node, fieldName string, fieldValue any) {
 		if fieldValue == nil && (fieldType.Kind() == reflect.Interface || fieldType.Kind() == reflect.Pointer || fieldType.Kind() == reflect.Map || fieldType.Kind() == reflect.Array) {
 			f.Set(NilReflectValue)
 
-		} else if (fieldValueType.Kind() == reflect.Int || fieldValueType.Kind() == reflect.Int64) && (fieldType.Kind() == reflect.Float32) {
+		} else if (fieldType.Kind() == reflect.Int || fieldType.Kind() == reflect.Int64) && (fieldValueType.Kind() == reflect.Float32) {
 			// Allow float32 to int assignments with truncation
 			f.Set(reflect.ValueOf(int(fieldValue.(float32))))
 
-		} else if (fieldValueType.Kind() == reflect.Int || fieldValueType.Kind() == reflect.Int64) && (fieldType.Kind() == reflect.Float64) {
+		} else if (fieldType.Kind() == reflect.Int || fieldType.Kind() == reflect.Int64) && (fieldValueType.Kind() == reflect.Float64) {
 			// Allow float32 to int assignments with truncation
 			f.Set(reflect.ValueOf(int(fieldValue.(float64))))
 
