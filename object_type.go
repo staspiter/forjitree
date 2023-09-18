@@ -95,17 +95,6 @@ func (t *ObjectType) setField(n *node, fieldName string, fieldValue any) {
 	}
 
 	n.obj.Updated(fieldName, fieldValue)
-	/*
-		m := n.objReflect.MethodByName("Updated")
-		if m.IsValid() && !m.IsZero() {
-			if fieldValue == nil {
-				// A workaround for nil values, because reflect.Value does not support nil values
-				m.Call([]reflect.Value{reflect.ValueOf(fieldName), NilReflectValue})
-			} else {
-				m.Call([]reflect.Value{reflect.ValueOf(fieldName), reflect.ValueOf(fieldValue)})
-			}
-		}
-	*/
 }
 
 func (t *ObjectType) callRedirect(n *node) []*node {
