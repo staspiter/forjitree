@@ -415,7 +415,14 @@ func internalGet(nodes []*node, t pathToken, postprocess bool) []*node {
 		if n == nil {
 			return
 		}
-		appendArr := []*node{n}
+
+		var appendArr []*node
+		if n.objType != nil {
+			appendArr = n.objType.callRedirect(n)
+		} else {
+			appendArr = []*node{n}
+		}
+
 		if vStr, vIsStr := n.value.(string); postprocess && n.nodeType == NodeTypeValue && vIsStr && strings.HasPrefix(vStr, "@") && n.parent != nil {
 			subResult := n.parent.Get(vStr[1:], true)
 			appendArr = []*node{}
@@ -423,6 +430,7 @@ func internalGet(nodes []*node, t pathToken, postprocess bool) []*node {
 				appendArr = append(appendArr, subNode.(*node))
 			}
 		}
+
 		for _, n2 := range appendArr {
 			exists := false
 			for i := 0; i < len(result); i++ {
