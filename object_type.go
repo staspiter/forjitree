@@ -111,10 +111,14 @@ func (t *ObjectType) setField(n *node, fieldName string, fieldValue any) {
 func (t *ObjectType) callRedirect(n *node) []*node {
 	var m reflect.Value
 
+	// Cache Redirect function presence
 	if t.redirect == nil || *t.redirect {
 		m = n.objReflect.MethodByName("Redirect")
-		var b bool = m.IsValid() && !m.IsZero()
+		var b bool = !m.IsZero() && m.IsValid()
 		t.redirect = &b
+		if !*t.redirect {
+			return []*node{n}
+		}
 	} else {
 		return []*node{n}
 	}
