@@ -93,12 +93,12 @@ func (t *ObjectType) setField(n *node, fieldName string, fieldValue any) {
 func (t *ObjectType) callRedirect(n *node) []*node {
 	m := n.objReflect.MethodByName("Redirect")
 	if m.IsValid() && !m.IsZero() {
-		nodesValues := m.Call(nil)
-		result := make([]*node, len(nodesValues))
-		for i, v := range nodesValues {
-			result[i] = v.Elem().Interface().(*node)
+		callResult := m.Call(nil)
+		if len(callResult) == 1 {
+			return callResult[0].Interface().([]*node)
+		} else {
+			return []*node{n}
 		}
-		return result
 	} else {
 		return []*node{n}
 	}
