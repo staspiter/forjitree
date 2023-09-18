@@ -96,7 +96,7 @@ func (t *ObjectType) callRedirect(n *node) []*node {
 		nodesValues := m.Call(nil)
 		result := make([]*node, len(nodesValues))
 		for i, v := range nodesValues {
-			result[i] = v.Interface().(*node)
+			result[i] = v.Elem().Interface().(*node)
 		}
 		return result
 	} else {

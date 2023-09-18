@@ -416,13 +416,15 @@ func internalGet(nodes []*node, t pathToken, postprocess bool) []*node {
 			return
 		}
 
+		// Object redirect (for subtrees)
 		var appendArr []*node
-		if n.objType != nil {
+		if postprocess && n.objType != nil {
 			appendArr = n.objType.callRedirect(n)
 		} else {
 			appendArr = []*node{n}
 		}
 
+		// Links (string values starting with @)
 		if vStr, vIsStr := n.value.(string); postprocess && n.nodeType == NodeTypeValue && vIsStr && strings.HasPrefix(vStr, "@") && n.parent != nil {
 			subResult := n.parent.Get(vStr[1:], true)
 			appendArr = []*node{}
