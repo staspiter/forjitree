@@ -3,6 +3,7 @@ package forjitree
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -49,6 +50,9 @@ func MakePatchWithPath(path string, object any, resolveSemicolonSign bool) any {
 		}
 		m1 = m1[p].(map[string]any)
 	}
+
+	b, _ := json.Marshal(m)
+	fmt.Println(string(b))
 
 	return m
 }
