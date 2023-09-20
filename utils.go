@@ -3,7 +3,6 @@ package forjitree
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -43,16 +42,23 @@ func MakePatchWithPath(path string, object any, resolveSemicolonSign bool) any {
 				objectType = pSplit[1]
 			}
 		}
-		if objectType == "" {
-			m1[p] = map[string]any{}
+		if i == len(pathArr)-1 {
+			if objectMap, objectIsMap := object.(map[string]any); objectIsMap && objectType != "" {
+				objectMap["object"] = objectType
+				m1[p] = objectMap
+			} else {
+				m1[p] = object
+			}
 		} else {
-			m1[p] = map[string]any{"object": objectType}
+			if objectType == "" {
+				m1[p] = map[string]any{}
+			} else {
+				m1[p] = map[string]any{"object": objectType}
+			}
+			m1 = m1[p].(map[string]any)
 		}
-		m1 = m1[p].(map[string]any)
-	}
 
-	b, _ := json.Marshal(m)
-	fmt.Println(string(b))
+	}
 
 	return m
 }
