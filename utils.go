@@ -24,44 +24,32 @@ func (ignoreColumn) Scan(value interface{}) error {
 	return nil
 }
 
-func MakePatchWithPath(path string, object any, resolveEqualsSign bool) any {
+func MakePatchWithPath(path string, object any, resolveSemicolonSign bool) any {
 	pathArr := strings.Split(path, "/")
 	if len(pathArr) == 0 || (len(pathArr) == 1 && pathArr[0] == "") {
 		return object
 	}
 	m := map[string]any{}
 	m1 := m
+
 	for i := 0; i < len(pathArr); i++ {
 		p := pathArr[i]
-
-		skipSubpath := false
-		if resolveEqualsSign && strings.ContainsRune(p, '=') {
-			pSplit := strings.Split(p, "=")
-			m1[pSplit[0]] = pSplit[1]
-			skipSubpath = true
-		}
-
-		if i == len(pathArr)-1 {
-			if skipSubpath {
-				// Need to merge the object with the existing one
-				switch ot := object.(type) {
-				case map[string]any:
-					for k, v := range ot {
-						m1[k] = v
-					}
-				case []any:
-					m1[p] = ot
-				}
-			} else {
-				m1[p] = object
+		objectType := ""
+		if resolveSemicolonSign && strings.ContainsRune(p, ':') {
+			pSplit := strings.Split(p, ":")
+			p = pSplit[0]
+			if len(pSplit) > 1 {
+				objectType = pSplit[1]
 			}
+		}
+		if objectType == "" {
+			m1[p] = map[string]any{}
 		} else {
-			if !skipSubpath {
-				m1[p] = map[string]any{}
-				m1 = m1[p].(map[string]any)
-			}
+			m1[p] = map[string]any{"object": objectType}
 		}
+		m1 = m1[p].(map[string]any)
 	}
+
 	return m
 }
 
