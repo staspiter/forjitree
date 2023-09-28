@@ -77,11 +77,11 @@ class ForjiTree {
         this.modified = false
     }
 
-    set name(newName) {
+    SetName(newName) {
         this.name = newName
     }
 
-    get name() {
+    GetName() {
         return this.name
     }
 
@@ -629,7 +629,7 @@ class ClientDatasource {
     Connect() {
         let self = this
 
-        this.Tree.name = this.url
+        this.Tree.SetName(this.url)
 
         if (this.url.startsWith('http://') || this.url.startsWith('https://')) {
             // Request data only once
