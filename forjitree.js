@@ -5,6 +5,7 @@ class ForjiTree {
         this.rootNode = new ForjiNode(this, null, "")
         this.created = false
         this.modified = false
+        this.name = ''
     }
 
     Created() {
@@ -74,6 +75,14 @@ class ForjiTree {
 
     ResetModified() {
         this.modified = false
+    }
+
+    set name(newName) {
+        this.name = newName
+    }
+
+    get name() {
+        return this.name
     }
 
 }
@@ -602,7 +611,6 @@ class ClientDatasource {
 
     constructor(node) {
         this.node = node
-        this.websocket = false
         this.url = ""
         this.Tree = new ForjiTree()
         this.watcherId = crypto.randomUUID()
@@ -621,41 +629,44 @@ class ClientDatasource {
     Connect() {
         let self = this
 
-        if (!this.websocket) {
+        this.Tree.name = this.url
+
+        if (this.url.startsWith('http://') || this.url.startsWith('https://')) {
             // Request data only once
             fetch(this.url)
                 .then(response => response.json())
                 .then(data => self.Tree.Set(data))
-            return
         }
 
-        this.socket = new WebSocket(this.url + "?watcherId=" + this.watcherId)
-        this.socket.onopen = (event) => {
-            if (self.reconnectTimer != null) {
-                clearInterval(self.reconnectTimer)
-                self.reconnectTimer = null
-            }                
-        }
-        this.socket.onmessage = (event) => {
-            let data = JSON.parse(event.data)
-            self.Tree.Set(data)
-        }
-        this.socket.onclose = (event) => {
-            if (self.reconnectTimer == null)
-                self.reconnectTimer = setInterval(() => { self.Connect() }, 2000)
-        }
-        this.socket.onerror = (error) => {
-            if (self.reconnectTimer == null)
-                self.reconnectTimer = setInterval(() => { self.Connect() }, 2000)
+        else if (this.url.startsWith('ws://') || this.url.startsWith('wss://')) {
+            // Establish a ws connection
+            this.socket = new WebSocket(this.url + "?watcherId=" + this.watcherId)
+            this.socket.onopen = (event) => {
+                if (self.reconnectTimer != null) {
+                    clearInterval(self.reconnectTimer)
+                    self.reconnectTimer = null
+                }                
+            }
+            this.socket.onmessage = (event) => {
+                let data = JSON.parse(event.data)
+                self.Tree.Set(data)
+            }
+            this.socket.onclose = (event) => {
+                if (self.reconnectTimer == null)
+                    self.reconnectTimer = setInterval(() => { self.Connect() }, 2000)
+            }
+            this.socket.onerror = (error) => {
+                if (self.reconnectTimer == null)
+                    self.reconnectTimer = setInterval(() => { self.Connect() }, 2000)
+            }
         }
     }
 
     Disconnect() {
-        if (this.websocket) {
+        if (this.socket) {
             if (this.reconnectTimer)
                 clearInterval(this.reconnectTimer)
-            if (this.socket)
-                this.socket.close()
+            this.socket.close()
         }        
     }
 
