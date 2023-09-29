@@ -44,6 +44,7 @@ type Node interface {
 	Path() string
 	Tree() *Tree
 	NodeType() int
+	CleanNulls(recursive bool)
 	internalNode() *node
 }
 
@@ -573,6 +574,23 @@ func (n *node) Set(newValue any) {
 
 func (n *node) NodeType() int {
 	return n.nodeType
+}
+
+func (n *node) CleanNulls(recursive bool) {
+	subs := n.getChildren(recursive)
+
+	for _, n2 := range subs {
+		if n2.nodeType == NodeTypeValue && n2.value == nil {
+			p := n2.parent
+			pKey := n2.parentKey
+
+			if p.nodeType == NodeTypeMap {
+				p.mu.Lock()
+				delete(p.m, pKey)
+				p.mu.Unlock()
+			}
+		}
+	}
 }
 
 func (n *node) internalNode() *node {
