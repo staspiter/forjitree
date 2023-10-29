@@ -615,6 +615,8 @@ class ClientDatasource {
         this.Tree = new ForjiTree()
         this.watcherId = crypto.randomUUID()
         this.reconnectTimer = null
+        this.OnError = null
+        this.OnClose = null
     }
 
     Created() {
@@ -640,7 +642,14 @@ class ClientDatasource {
 
         else if (this.url.startsWith('ws://') || this.url.startsWith('wss://')) {
             // Establish a ws connection
-            this.socket = new WebSocket(this.url + "?watcherId=" + this.watcherId)
+            let url = this.url
+            if (this.url.includes('?'))
+                url += '&'
+            else
+                url += '?'
+            url += 'watcherId=' + this.watcherId
+            
+            this.socket = new WebSocket(url)
             this.socket.onopen = (event) => {
                 if (self.reconnectTimer != null) {
                     clearInterval(self.reconnectTimer)
@@ -654,10 +663,14 @@ class ClientDatasource {
             this.socket.onclose = (event) => {
                 if (self.reconnectTimer == null)
                     self.reconnectTimer = setInterval(() => { self.Connect() }, 2000)
+                if (self.OnClose)
+                    self.OnClose(event)
             }
             this.socket.onerror = (error) => {
                 if (self.reconnectTimer == null)
                     self.reconnectTimer = setInterval(() => { self.Connect() }, 2000)
+                if (self.OnError)
+                    self.OnError(error)
             }
         }
     }
