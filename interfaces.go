@@ -1,7 +1,20 @@
 package forjitree
 
-type Datasource interface {
+type Object interface {
 	GetNode() Node
+	Created()
+	CreatedChildren()
+	CreatedTree()
+	Destroyed()
+	Updated(string, any)
+}
+
+type NewObjectFunc = func(Node) Object
+
+type PluginsGetTypesFunc = func() []string
+
+type Datasource interface {
+	Object
 
 	Connect() error
 	Disconnect() error
@@ -14,14 +27,14 @@ type Datasource interface {
 }
 
 type Schema interface {
-	GetNode() Node
+	Object
 
 	DefaultDatasource() Datasource
 	Types() string
 }
 
 type Action interface {
-	GetNode() Node
+	Object
 
 	Call(schema Schema) error
 }
