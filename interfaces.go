@@ -1,6 +1,8 @@
 package forjitree
 
 type Datasource interface {
+	GetNode() Node
+
 	Connect() error
 	Disconnect() error
 
@@ -9,4 +11,17 @@ type Datasource interface {
 	Delete(query any) (map[string][]int, error)
 	Clear() error
 	Watch(query any, watcherId string) (any, error)
+}
+
+type Schema interface {
+	GetNode() Node
+
+	DefaultDatasource() Datasource
+	Types() string
+}
+
+type Action interface {
+	GetNode() Node
+
+	Call(schema Schema) error
 }
