@@ -32,9 +32,10 @@ type Context interface {
 type Schema interface {
 	Object
 
-	DefaultDatasource() Datasource
-	Types() string
 	NewContext() Context
+
+	DefaultDatasource() Datasource
+	Types() []string
 }
 
 type Action interface {
