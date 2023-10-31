@@ -55,7 +55,8 @@ func NewObjectTypesFromPlugin(pluginFilename string) ([]*ObjectType, error) {
 
 		newFunc, ok := s.(NewObjectFunc)
 		if !ok {
-			return nil, fmt.Errorf("loading plugin error %s: %s function should match 'func() Object'", pluginFilename, exportedFunctionName)
+			continue
+			//return nil, fmt.Errorf("loading plugin error %s: %s function should match 'func() Object'", pluginFilename, exportedFunctionName)
 		}
 
 		objectTypes = append(objectTypes, &ObjectType{
