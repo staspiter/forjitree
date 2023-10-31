@@ -33,10 +33,10 @@ type Context interface {
 type Schema interface {
 	Object
 
-	NewContext(ContextInitData any) Context
+	NewContext(event any) Context
 
 	DefaultDatasource() Datasource
-	Types() []string
+	GetTypes() []string
 }
 
 type Action interface {
