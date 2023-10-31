@@ -27,12 +27,13 @@ type Datasource interface {
 }
 
 type Context interface {
+	GetSchema() Schema
 }
 
 type Schema interface {
 	Object
 
-	NewContext() Context
+	NewContext(ContextInitData any) Context
 
 	DefaultDatasource() Datasource
 	Types() []string
@@ -41,5 +42,5 @@ type Schema interface {
 type Action interface {
 	Object
 
-	Call(schema Schema, context Context) error
+	Call(context Context) error
 }
