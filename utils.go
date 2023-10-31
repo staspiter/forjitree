@@ -8,11 +8,14 @@ import (
 	"os"
 	"os/signal"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
 	"unicode"
 )
+
+var FunctionRegex = regexp.MustCompile(`^([a-zA-Z]+)\((.*)\)$`)
 
 var IgnoreColumn ignoreColumn
 
