@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-
-	"github.com/rs/zerolog/log"
 )
 
 type Object interface {
@@ -67,7 +65,6 @@ func RunActions(actions []Action, c Context) error {
 	for _, a := range actions {
 		actionErr := a.Call(c)
 		if actionErr != nil {
-			log.Error().Str("group", "action").Str("node", a.GetNode().Path()).Err(actionErr).Msg("Action error")
 			c.SetLastError(actionErr.Error())
 			if c.GetBreakOnError() {
 				return actionErr
