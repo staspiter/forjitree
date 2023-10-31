@@ -71,7 +71,11 @@ func RunActions(actions []Action, c Context) error {
 			}
 		}
 	}
-	return errors.New(c.GetLastError())
+	lastError := c.GetLastError()
+	if lastError != "" {
+		return errors.New(lastError)
+	}
+	return nil
 }
 
 func EvaluateContextValue(c Context, s string) any {
