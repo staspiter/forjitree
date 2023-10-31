@@ -26,15 +26,19 @@ type Datasource interface {
 	Watch(query any, watcherId string) (any, error)
 }
 
+type Context interface {
+}
+
 type Schema interface {
 	Object
 
 	DefaultDatasource() Datasource
 	Types() string
+	NewContext() Context
 }
 
 type Action interface {
 	Object
 
-	Call(schema Schema) error
+	Call(schema Schema, context Context) error
 }
