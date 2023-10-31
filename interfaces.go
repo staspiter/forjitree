@@ -1,5 +1,11 @@
 package forjitree
 
+import (
+	"errors"
+
+	"github.com/rs/zerolog/log"
+)
+
 type Object interface {
 	GetNode() Node
 	Created()
@@ -28,6 +34,12 @@ type Datasource interface {
 
 type Context interface {
 	GetSchema() Schema
+
+	GetBreakOnError() bool
+	SetBreakOnError(bool)
+
+	GetLastError() string
+	SetLastError(string)
 }
 
 type Schema interface {
@@ -42,5 +54,19 @@ type Schema interface {
 type Action interface {
 	Object
 
-	Call(context Context) error
+	Call(Context) error
+}
+
+func RunActions(actions []Action, ctx Context) error {
+	for _, a := range actions {
+		actionErr := a.Call(ctx)
+		if actionErr != nil {
+			log.Error().Str("group", "action").Str("node", a.GetNode().Path()).Err(actionErr).Msg("Action error")
+			ctx.SetLastError(actionErr.Error())
+			if ctx.GetBreakOnError() {
+				return actionErr
+			}
+		}
+	}
+	return errors.New(ctx.GetLastError())
 }
