@@ -111,7 +111,7 @@ func (t *ObjectType) callRedirect(n *node) []*node {
 
 	// Cache Redirect function presence
 	if t.redirect == nil || *t.redirect {
-		if n.objReflect.IsZero() {
+		if !n.objReflect.IsValid() || n.objReflect.IsZero() {
 			return []*node{n}
 		}
 		m = n.objReflect.MethodByName("Redirect")
