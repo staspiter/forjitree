@@ -73,10 +73,6 @@ func (t *ObjectType) createObject(node Node) Object {
 }
 
 func (t *ObjectType) setField(n *node, fieldName string, fieldValue any) {
-	if fieldName == "data" {
-		fmt.Println("setField", fieldName, fieldValue)
-	}
-
 	f := n.objReflect.Elem().FieldByName(Capitalize(fieldName))
 	if f.IsValid() && f.CanSet() {
 
