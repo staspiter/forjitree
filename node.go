@@ -230,7 +230,7 @@ func (n *node) patch(data any) []*node {
 		n.mu.Unlock()
 	}
 
-	if modified {
+	if modified || len(modifiedSubnodes) > 0 {
 		return append(modifiedSubnodes, n)
 	} else {
 		return modifiedSubnodes
