@@ -2,6 +2,7 @@ package forjitree
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -161,6 +162,10 @@ func (n *node) patch(data any) []*node {
 
 	switch d := data.(type) {
 	case map[string]any:
+		if n.parentKey == "beginNewTurn" {
+			fmt.Println("beginNewTurn", "map", data)
+		}
+
 		modified = n.setNodeType(NodeTypeMap)
 		for k, v := range d {
 			n.mu.Lock()
@@ -174,6 +179,10 @@ func (n *node) patch(data any) []*node {
 		}
 
 	case []any:
+		if n.parentKey == "beginNewTurn" {
+			fmt.Println("beginNewTurn", "slice", data)
+		}
+
 		modified = n.setNodeType(NodeTypeSlice)
 
 		// Check if we are in appendArray mode
