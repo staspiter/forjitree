@@ -200,6 +200,50 @@ func EnsureMapAny(m any) map[string]any {
 		for k, v := range mMap {
 			result[k] = v
 		}
+	} else if mMap, mIsMap := m.(map[string]float32); mIsMap {
+		for k, v := range mMap {
+			result[k] = v
+		}
+	} else if mMap, mIsMap := m.(map[string]float64); mIsMap {
+		for k, v := range mMap {
+			result[k] = v
+		}
+	} else {
+		return nil
+	}
+	return result
+}
+
+func EnsureSliceAny(m any) []any {
+	var result []any
+	if mSl, mIsSl := m.([]any); mIsSl {
+		result = make([]any, len(mSl))
+		copy(result, mSl)
+	} else if mSl, mIsSl := m.([]string); mIsSl {
+		result = make([]any, len(mSl))
+		for k, v := range mSl {
+			result[k] = v
+		}
+	} else if mSl, mIsSl := m.([]bool); mIsSl {
+		result = make([]any, len(mSl))
+		for k, v := range mSl {
+			result[k] = v
+		}
+	} else if mSl, mIsSl := m.([]int); mIsSl {
+		result = make([]any, len(mSl))
+		for k, v := range mSl {
+			result[k] = v
+		}
+	} else if mSl, mIsSl := m.([]float32); mIsSl {
+		result = make([]any, len(mSl))
+		for k, v := range mSl {
+			result[k] = v
+		}
+	} else if mSl, mIsSl := m.([]float64); mIsSl {
+		result = make([]any, len(mSl))
+		for k, v := range mSl {
+			result[k] = v
+		}
 	} else {
 		return nil
 	}
