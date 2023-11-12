@@ -89,7 +89,7 @@ func evalutateStringInternal(c Context, s string, evaluateThisValue bool) any {
 
 	containsUnescapedCurlyBrace := false
 	for i := 0; i < len(s); i++ {
-		if s[i] == '{' && (i == 0 || s[i-1] != '\\') {
+		if s[i] == '{' && (i == 0 || (s[i-1] != '\\' && s[i-1] != '$')) {
 			containsUnescapedCurlyBrace = true
 		}
 	}
@@ -103,9 +103,9 @@ func evalutateStringInternal(c Context, s string, evaluateThisValue bool) any {
 		substituted := false
 		lastOpenBracket := -1
 		for i := 0; i < len(s); i++ {
-			if s[i] == '{' && (i == 0 || s[i-1] != '\\') {
+			if s[i] == '{' && (i == 0 || (s[i-1] != '\\' && s[i-1] != '$')) {
 				lastOpenBracket = i
-			} else if s[i] == '}' && (i == 0 || s[i-1] != '\\') {
+			} else if s[i] == '}' && (i == 0 || (s[i-1] != '\\' && s[i-1] != '$')) {
 				if lastOpenBracket > -1 {
 					s1 = s1[:len(s1)-(i-lastOpenBracket)] + fmt.Sprintf("%v", evalutateStringInternal(c, s[lastOpenBracket+1:i], true))
 					lastOpenBracket = -1
