@@ -79,10 +79,10 @@ func RunActions(actions []Action, c Context) error {
 }
 
 func EvaluateContextValue(c Context, s string) any {
-	return evalutateStringInternal(c, s, false)
+	return evaluateStringInternal(c, s, false)
 }
 
-func evalutateStringInternal(c Context, s string, evaluateThisValue bool) any {
+func evaluateStringInternal(c Context, s string, evaluateThisValue bool) any {
 	if strings.HasPrefix(s, ":") {
 		return c.Get(strings.TrimPrefix(s, ":"))
 	}
@@ -107,9 +107,12 @@ func evalutateStringInternal(c Context, s string, evaluateThisValue bool) any {
 				lastOpenBracket = i
 			} else if s[i] == '}' && (i == 0 || (s[i-1] != '\\' && s[i-1] != '$')) {
 				if lastOpenBracket > -1 {
-					s1 = s1[:len(s1)-(i-lastOpenBracket)] + fmt.Sprintf("%v", evalutateStringInternal(c, s[lastOpenBracket+1:i], true))
+					stringInsideBrackets := s[lastOpenBracket+1 : i]
+					if !strings.ContainsAny(stringInsideBrackets, "\n\r\t") {
+						s1 = s1[:len(s1)-(i-lastOpenBracket)] + fmt.Sprintf("%v", evaluateStringInternal(c, s[lastOpenBracket+1:i], true))
+						substituted = true
+					}
 					lastOpenBracket = -1
-					substituted = true
 					continue
 				}
 			}
