@@ -111,9 +111,10 @@ func evaluateStringInternal(c Context, s string, evaluateThisValue bool) any {
 					if !strings.ContainsAny(stringInsideBrackets, "\n\r\t") {
 						s1 = s1[:len(s1)-(i-lastOpenBracket)] + fmt.Sprintf("%v", evaluateStringInternal(c, s[lastOpenBracket+1:i], true))
 						substituted = true
+						lastOpenBracket = -1
+						continue
 					}
 					lastOpenBracket = -1
-					continue
 				}
 			}
 			s1 += string(s[i])
