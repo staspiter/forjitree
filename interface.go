@@ -43,7 +43,6 @@ type Context interface {
 
 	Get(key string) any
 	Set(key string, value any)
-	ExposeFields() map[string]any
 }
 
 type Schema interface {
