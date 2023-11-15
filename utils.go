@@ -146,6 +146,20 @@ func GetValueFromMap(m map[string]any, path []string) any {
 	return nil
 }
 
+func GetValueFromStruct(object any, path []string) (any, error) {
+	v := reflect.ValueOf(object)
+	for _, key := range path {
+		for v.Kind() == reflect.Ptr {
+			v = v.Elem()
+		}
+		if v.Kind() != reflect.Struct {
+			return nil, fmt.Errorf("only accepts structs; got %T", v)
+		}
+		v = v.FieldByName(key)
+	}
+	return v, nil
+}
+
 func SubstituteValuesInArray(m []any, f func(string, []string) any, path []string) {
 	for i := 0; i < len(m); i++ {
 		if vm, ok := m[i].(map[string]any); ok {
