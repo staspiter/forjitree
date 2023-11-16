@@ -147,6 +147,12 @@ func GetValueFromMap(m map[string]any, path []string) any {
 }
 
 func GetValueFromStruct(object any, path []string) (any, error) {
+	if object == nil {
+		return nil, fmt.Errorf("object is nil")
+	}
+	if len(path) == 0 {
+		return object, nil
+	}
 	v := reflect.ValueOf(object)
 	for _, key := range path {
 		for v.Kind() == reflect.Ptr {
@@ -156,6 +162,9 @@ func GetValueFromStruct(object any, path []string) (any, error) {
 			return nil, fmt.Errorf("only accepts structs; got %T", v)
 		}
 		v = v.FieldByName(key)
+		if !v.IsValid() {
+			return nil, fmt.Errorf("no such field: %s in object of type %T", strings.Join(path, "."), object)
+		}
 	}
 	return v.Interface(), nil
 }
