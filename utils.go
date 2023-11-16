@@ -157,7 +157,7 @@ func GetValueFromStruct(object any, path []string) (any, error) {
 		}
 		v = v.FieldByName(key)
 	}
-	return v, nil
+	return v.Interface(), nil
 }
 
 func SubstituteValuesInArray(m []any, f func(string, []string) any, path []string) {
