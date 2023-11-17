@@ -196,7 +196,7 @@ class ForjiNode {
             this.value = d
         }
 
-        if (modified)
+        if (modified || modifiedSubnodes.length > 0)
             modifiedSubnodes.push(this)
 
         return modifiedSubnodes
@@ -458,6 +458,10 @@ class ObjectType {
     }
 
     setField(node, key, value) {
+        // We require fields in the object to be initialized
+        if (typeof node.obj[key] === 'undefined')
+            return
+
         node.obj[key] = value
         
         if (node.obj["Updated"] && typeof node.obj["Updated"] === "function")
