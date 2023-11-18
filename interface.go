@@ -43,6 +43,8 @@ type Context interface {
 
 	Get(key string) any
 	Set(key string, value any)
+
+	Log(msgType string, msg string)
 }
 
 type Schema interface {
