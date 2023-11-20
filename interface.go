@@ -68,6 +68,7 @@ func RunActions(actions []Action, c Context) error {
 		if actionErr != nil {
 			c.SetLastError(actionErr.Error())
 			if c.GetBreakOnError() {
+				c.Log("error", a.GetNode().Path()+": "+actionErr.Error())
 				return actionErr
 			}
 		}
