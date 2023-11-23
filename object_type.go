@@ -85,7 +85,7 @@ func (t *ObjectType) setField(n *node, fieldName string, fieldValue any) {
 			} else {
 				f.Set(reflect.Zero(fieldType))
 			}
-		} else if fieldValueType != nil {
+		} else if fieldValueType != nil && fieldValueType.ConvertibleTo(fieldType) {
 			f.Set(reflect.ValueOf(fieldValue).Convert(fieldType))
 		}
 	}
