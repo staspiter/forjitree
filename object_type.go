@@ -79,27 +79,14 @@ func (t *ObjectType) setField(n *node, fieldName string, fieldValue any) {
 		fieldValueType := reflect.TypeOf(fieldValue)
 		fieldType := f.Type()
 
-		if fieldValue == nil && (fieldType.Kind() == reflect.Interface || fieldType.Kind() == reflect.Pointer || fieldType.Kind() == reflect.Map || fieldType.Kind() == reflect.Array) {
-			f.Set(NilReflectValue)
-
-		} else if fieldType.Kind() == reflect.Int && fieldValueType != nil && fieldValueType.Kind() == reflect.Float32 {
-			// Allow float32 to int assignments with truncation
-			f.Set(reflect.ValueOf(int(fieldValue.(float32))))
-
-		} else if fieldType.Kind() == reflect.Int && fieldValueType != nil && fieldValueType.Kind() == reflect.Float64 {
-			// Allow float64 to int assignments with truncation
-			f.Set(reflect.ValueOf(int(fieldValue.(float64))))
-
-		} else if fieldType.Kind() == reflect.Int64 && fieldValueType != nil && fieldValueType.Kind() == reflect.Float32 {
-			// Allow float32 to int64 assignments with truncation
-			f.Set(reflect.ValueOf(int64(fieldValue.(float32))))
-
-		} else if fieldType.Kind() == reflect.Int64 && fieldValueType != nil && fieldValueType.Kind() == reflect.Float64 {
-			// Allow float64 to int64 assignments with truncation
-			f.Set(reflect.ValueOf(int64(fieldValue.(float64))))
-
-		} else if fieldValue != nil && fieldValueType != nil && fieldValueType.AssignableTo(fieldType) {
-			f.Set(reflect.ValueOf(fieldValue))
+		if fieldValue == nil {
+			if fieldType.Kind() == reflect.Interface || fieldType.Kind() == reflect.Pointer || fieldType.Kind() == reflect.Map || fieldType.Kind() == reflect.Array {
+				f.Set(NilReflectValue)
+			} else {
+				f.Set(reflect.Zero(fieldType))
+			}
+		} else if fieldValueType != nil {
+			f.Set(reflect.ValueOf(fieldValue).Convert(fieldType))
 		}
 	}
 
