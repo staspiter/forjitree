@@ -664,7 +664,7 @@ class ClientDatasource {
                 }                
             }
             this.socket.onmessage = (event) => {
-                let data = msgpack.deserialize(event.data)
+                let data = msgpack.deserialize(new Uint8Array(event.data))
                 self.Tree.Set(data)
             }
             this.socket.onclose = (event) => {
