@@ -656,6 +656,7 @@ class ClientDatasource {
             url += 'watcherId=' + this.watcherId
             
             this.socket = new WebSocket(url)
+            this.socket.binaryType = 'arraybuffer'
             this.socket.onopen = (event) => {
                 if (self.reconnectTimer != null) {
                     clearInterval(self.reconnectTimer)
