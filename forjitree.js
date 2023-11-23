@@ -663,7 +663,7 @@ class ClientDatasource {
                 }                
             }
             this.socket.onmessage = (event) => {
-                let data = JSON.parse(event.data)
+                let data = msgpack.deserialize(event.data)
                 self.Tree.Set(data)
             }
             this.socket.onclose = (event) => {
