@@ -191,7 +191,7 @@ class ForjiNode {
 
         } else {
             modified = this.setNodeType(NodeType.Value)
-            if (this.value != d)
+            if (this.value != d || (typeof this.value !== typeof d))
                 modified = true
             this.value = d
         }
