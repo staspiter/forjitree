@@ -212,7 +212,10 @@ class ForjiNode {
                 newType = this.tree.GetType(typeNode.value)
         }
 
-        if (newType != this.objType) {
+        if (newType != this.objType || 
+            (this.objType && typeof this.objType.Immutable === 'function' && this.objType.Immutable()) || 
+            (newType && typeof newType.Immutable === 'function' && newType.Immutable())) {
+
             if (this.objType)
                 this.destroyObject(false)
             
