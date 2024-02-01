@@ -6,6 +6,10 @@ class ForjiTree {
         this.created = false
         this.modified = false
         this.name = ''
+        this.unregisteredObjectsList = []
+
+        this.AddTypes(ClientDatasource, Type)
+        this.AddType(Block, "Block", null, /* allowUninitializedFields */ true)
     }
 
     Created() {
@@ -48,9 +52,41 @@ class ForjiTree {
             this.modified = true
     }
 
-    AddType(objectClass) {
-        let className = getClassName(objectClass)
-        this.objectTypes[className] = new ObjectType(objectClass, className)
+    AddType(objectClass, customClassName = null, defaultData = null, allowUninitializedFields = false) {
+        let className = customClassName
+        let classNameReal = getClassName(objectClass)
+
+        if (className == null)
+            className = classNameReal
+
+        // Combine default data from the base class and the new class
+        let defaultDataCombined = {}
+        if (classNameReal != className) {
+            let realObjectType = this.objectTypes[classNameReal]
+            if (realObjectType) {
+                // Copy default data from the base class
+                for (const [k, v] of Object.entries(realObjectType.defaultData))
+                    defaultDataCombined[k] = v
+                
+                // Use allowUninitializedFields from the base class
+                if (realObjectType.allowUninitializedFields)
+                    allowUninitializedFields = true
+            }
+        }
+        if (defaultData)
+            for (const [k, v] of Object.entries(defaultData))
+                defaultDataCombined[k] = v
+
+        this.objectTypes[className] = new ObjectType(objectClass, className, defaultDataCombined, allowUninitializedFields)
+
+        // Synchronize all unregistered objects, the new type might be used in them
+        let unregisteredObjectsCopy = this.unregisteredObjectsList.slice()
+        this.unregisteredObjectsList = []
+        for (const p of unregisteredObjectsCopy) {
+            let nodes = this.rootNode.Get(p)
+            for (const n of nodes)
+                n.synchronize()
+        }
     }
 
     AddTypes(...objectClasses) {
@@ -208,8 +244,14 @@ class ForjiNode {
         let newType = null
         if (this.nodeType == NodeType.Map) {
             let typeNode = this.m[ObjectKeyword]
-            if (typeNode && typeNode.nodeType == NodeType.Value && typeNode.value != null)
+            if (typeNode && typeNode.nodeType == NodeType.Value && typeNode.value != null) {
                 newType = this.tree.GetType(typeNode.value)
+                if (!newType) {
+                    let p = this.Path()
+                    if (!this.tree.unregisteredObjectsList.includes(p))
+                        this.tree.unregisteredObjectsList.push(p)                    
+                }
+            }
         }
 
         if (newType != this.objType || 
@@ -224,7 +266,12 @@ class ForjiNode {
                 this.obj = newType.createObject(this)
                 this.obj.node = this
 
-                // Set all fields immediately before calling Created
+                // Set default fields before calling Created
+                if (this.objType.defaultData)
+                    for (const [k, v] of Object.entries(this.objType.defaultData))
+                        this.objType.setField(this, k, v)
+
+                // Set all fields before calling Created
                 for (const [k, v] of Object.entries(this.m)) {
                     if (k == ObjectKeyword)
                         continue
@@ -451,9 +498,11 @@ class ForjiNode {
 
 class ObjectType {
 
-    constructor(objectClass, name) {
+    constructor(objectClass, name, defaultData, allowUninitializedFields = false) {
         this.objectClass = objectClass
         this.name = name
+        this.defaultData = defaultData
+        this.allowUninitializedFields = allowUninitializedFields
     }
 
     createObject(node) {
@@ -461,8 +510,9 @@ class ObjectType {
     }
 
     setField(node, key, value) {
-        // We require fields in the object to be initialized
-        if (typeof node.obj[key] === 'undefined')
+        // By default we require fields in the object to be initialized
+        // This is allowed to all blocks
+        if (!this.allowUninitializedFields && typeof node.obj[key] === 'undefined')
             return
 
         node.obj[key] = value
@@ -664,7 +714,7 @@ class ClientDatasource {
                 if (self.reconnectTimer != null) {
                     clearInterval(self.reconnectTimer)
                     self.reconnectTimer = null
-                }                
+                }
             }
             this.socket.onmessage = (event) => {
                 let data = msgpack.deserialize(new Uint8Array(event.data))
@@ -693,4 +743,121 @@ class ClientDatasource {
         }        
     }
 
+}
+
+class Type {
+
+    constructor(node) {
+        this.node = node
+        this.base = ""
+        this.name = ""
+        this.defaultData = {}
+    }
+
+    Created() {
+        this.name = this.node.Name()
+
+        console.log("Registering dynamic type " + this.name)
+
+        // Retrieve default type data from the nodes
+        this.defaultData = {}
+        for (const [k, v] of Object.entries(this.node.m))
+            if (k != ObjectKeyword && k != "base")
+                this.defaultData[k] = v.getValue()
+
+        // Get the base type from the tree
+        let baseType = this.node.Tree().objectTypes[this.base]
+        if (!baseType) {
+            console.warn("Base type " + this.base + " was not found")
+            return
+        }
+
+        // Add the type to the tree
+        this.node.tree.AddType(baseType.objectClass, this.name, this.defaultData)
+    }
+
+    Destroyed() {
+        this.node.tree.objectTypes[this.name] = null
+    }
+
+}
+
+class Block {
+
+    constructor(node) {
+        this.node = node
+        this.html = ""
+        this.container = ""
+        
+        this.element = document.createElement('div')
+        this.element.classList.add('block')
+        this.element.setAttribute('type', this.node.objType.name)
+        this.created = false
+    }
+
+    Created() {
+        // Find parent Block
+        this.parentBlock = GetObj(this.node.Get("...[object=Block]"))
+
+        let appended = false
+
+        // Append to parent Block if it exists
+        if (this.parentBlock) {
+            let containerElement = this.parentBlock.element.querySelector("[contains*='" + this.node.objType.name + "']")
+            if (containerElement != null) {
+                this.element = containerElement.appendChild(this.element)
+                appended = true
+            }
+            else
+                console.warn("Could not append block " + this.node.Name() + " (" + this.node.objType.name + 
+                    "), container not found in parent block " + this.parentBlock.node.Name() + " (" + this.parentBlock.node.objType.name + ")")
+        }
+
+        // Append to container if it exists
+        if (!appended && this.container) {
+            let containerElement = document.querySelector(this.container)
+            if (containerElement != null) {
+                this.element = containerElement.appendChild(this.element)
+                appended = true
+            }
+            else
+                console.warn("Could not append block " + this.node.Name() + " (" + this.node.objType.name + "), container not found: " + this.container)
+        }
+
+        // Append to body
+        if (!appended)
+            this.element = document.body.appendChild(this.element)
+
+        this.created = true
+
+        this.Updated()
+    }
+
+    Destroyed() {
+        this.element.remove()
+    }
+
+    Updated() { 
+        if (!this.created) 
+            return
+
+        // Remember all contained block elements to put them back after refilling the block
+        let containedBlocks = []
+        for (const e of this.element.querySelectorAll('.block'))
+            containedBlocks.push(e)
+
+        this.element.innerHTML = interpolateTemplate(this.html, this.node.getValue())
+
+        // Put the contained blocks back
+        let containerElement = null
+        for (const e of containedBlocks)
+            if ((containerElement = this.element.querySelector("[contains*='" + e.getAttribute("type") + "']")) != null)
+                containerElement.appendChild(e)
+    }
+
+}
+
+function interpolateTemplate(tpl, args) {
+    var keys = Object.keys(args), fn = new Function(...keys, 'return `' + tpl.replace(/`/g, '\\`') + '`')
+    return fn(...keys.map(x => args[x]))
 }
