@@ -254,9 +254,7 @@ class ForjiNode {
             }
         }
 
-        if (newType != this.objType || 
-            (this.objType && typeof this.objType.Immutable === 'function' && this.objType.Immutable()) || 
-            (newType && typeof newType.Immutable === 'function' && newType.Immutable())) {
+        if (newType != this.objType) {
 
             if (this.objType)
                 this.destroyObject(false)
