@@ -173,58 +173,6 @@ func (n *node) patch(data any) []*node {
 			modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
 		}
 
-	case map[string]string:
-		modified = n.setNodeType(NodeTypeMap)
-		for k, v := range d {
-			n.mu.Lock()
-			if _, ok := n.m[k]; !ok {
-				n.m[k] = newNode(n.tree, n, k)
-				modified = true
-			}
-			subnode := n.m[k]
-			n.mu.Unlock()
-			modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
-		}
-
-	case map[string]bool:
-		modified = n.setNodeType(NodeTypeMap)
-		for k, v := range d {
-			n.mu.Lock()
-			if _, ok := n.m[k]; !ok {
-				n.m[k] = newNode(n.tree, n, k)
-				modified = true
-			}
-			subnode := n.m[k]
-			n.mu.Unlock()
-			modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
-		}
-
-	case map[string]float64:
-		modified = n.setNodeType(NodeTypeMap)
-		for k, v := range d {
-			n.mu.Lock()
-			if _, ok := n.m[k]; !ok {
-				n.m[k] = newNode(n.tree, n, k)
-				modified = true
-			}
-			subnode := n.m[k]
-			n.mu.Unlock()
-			modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
-		}
-
-	case map[string]int:
-		modified = n.setNodeType(NodeTypeMap)
-		for k, v := range d {
-			n.mu.Lock()
-			if _, ok := n.m[k]; !ok {
-				n.m[k] = newNode(n.tree, n, k)
-				modified = true
-			}
-			subnode := n.m[k]
-			n.mu.Unlock()
-			modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
-		}
-
 	case []any:
 		modified = n.setNodeType(NodeTypeSlice)
 
