@@ -53,7 +53,7 @@ func newNode(tree *Tree, parent *node, parentKey string) *node {
 		tree:      tree,
 		parent:    parent,
 		parentKey: parentKey,
-		nodeType:  NodeTypeMap,
+		nodeType:  NodeTypeValue,
 	}
 	return n
 }
@@ -64,10 +64,10 @@ func (n *node) setNodeType(newNodeType int) (modified bool, allowed bool) {
 	}
 
 	n.mu.Lock()
-	allowed = !((newNodeType == NodeTypeMap || newNodeType == NodeTypeSlice) && n.nodeType == NodeTypeValue && n.value == nil)
+	allowed = !((newNodeType == NodeTypeMap || newNodeType == NodeTypeSlice) && n.nodeType == NodeTypeValue && n.value == nil && n.parent != nil && !n.tree.allowPatchingNulls)
 	n.mu.Unlock()
 
-	if !allowed && !n.tree.allowPatchingNulls {
+	if !allowed {
 		return false, false
 	}
 
