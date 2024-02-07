@@ -17,6 +17,8 @@ type Tree struct {
 	watchersMutex          sync.Mutex
 	watchersCleanTimestamp time.Time
 	watchersCleanInterval  float64
+
+	allowPatchingNulls bool
 }
 
 func New() *Tree {
@@ -27,6 +29,7 @@ func New() *Tree {
 		watchers:               make(map[string]*watcher),
 		watchersCleanTimestamp: time.Now(),
 		watchersCleanInterval:  60,
+		allowPatchingNulls:     true,
 	}
 	t.rootNode = newNode(t, nil, "")
 	return t

@@ -53,14 +53,22 @@ func newNode(tree *Tree, parent *node, parentKey string) *node {
 		tree:      tree,
 		parent:    parent,
 		parentKey: parentKey,
-		nodeType:  NodeTypeValue,
+		nodeType:  NodeTypeMap,
 	}
 	return n
 }
 
-func (n *node) setNodeType(newNodeType int) bool {
+func (n *node) setNodeType(newNodeType int) (modified bool, allowed bool) {
 	if newNodeType == n.nodeType {
-		return false
+		return false, true
+	}
+
+	n.mu.Lock()
+	allowed = !((newNodeType == NodeTypeMap || newNodeType == NodeTypeSlice) && n.nodeType == NodeTypeValue && n.value == nil)
+	n.mu.Unlock()
+
+	if !allowed && !n.tree.allowPatchingNulls {
+		return false, false
 	}
 
 	n.destroyObject(true)
@@ -75,7 +83,7 @@ func (n *node) setNodeType(newNodeType int) bool {
 
 	n.mu.Unlock()
 
-	return true
+	return true, true
 }
 
 func (n *node) getValue() any {
@@ -157,71 +165,77 @@ func (n *node) query(q any) (any, error) {
 
 func (n *node) patch(data any) []*node {
 	modified := false
+	allowed := false
 	modifiedSubnodes := []*node{}
 
 	switch d := data.(type) {
 	case map[string]any:
-		modified = n.setNodeType(NodeTypeMap)
-		for k, v := range d {
-			n.mu.Lock()
-			if _, ok := n.m[k]; !ok {
-				n.m[k] = newNode(n.tree, n, k)
-				modified = true
+		modified, allowed = n.setNodeType(NodeTypeMap)
+		if allowed {
+			for k, v := range d {
+				n.mu.Lock()
+				if _, ok := n.m[k]; !ok {
+					n.m[k] = newNode(n.tree, n, k)
+					modified = true
+				}
+				subnode := n.m[k]
+				n.mu.Unlock()
+				modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
 			}
-			subnode := n.m[k]
-			n.mu.Unlock()
-			modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
 		}
 
 	case []any:
-		modified = n.setNodeType(NodeTypeSlice)
+		modified, allowed = n.setNodeType(NodeTypeSlice)
 
-		// Check if we are in appendArray mode
-		appendArrayMode := false
-		if len(d) > 0 {
-			firstItem := d[0]
-			if firstItemMap, firstItemIsMap := firstItem.(map[string]any); firstItemIsMap {
-				if _, firstItemIsMapWithAppendArray := firstItemMap["appendArray"]; firstItemIsMapWithAppendArray {
-					appendArrayMode = true
+		if allowed {
+
+			// Check if we are in appendArray mode
+			appendArrayMode := false
+			if len(d) > 0 {
+				firstItem := d[0]
+				if firstItemMap, firstItemIsMap := firstItem.(map[string]any); firstItemIsMap {
+					if _, firstItemIsMapWithAppendArray := firstItemMap["appendArray"]; firstItemIsMapWithAppendArray {
+						appendArrayMode = true
+					}
 				}
 			}
-		}
 
-		if appendArrayMode {
-			for _, v := range d {
-				n.mu.Lock()
-				subnode := newNode(n.tree, n, strconv.Itoa(len(n.sl)))
-				n.sl = append(n.sl, subnode)
-				n.mu.Unlock()
-				modified = true
-				modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
-			}
-		} else {
-			for i, v := range d {
-				n.mu.Lock()
-				if len(n.sl) <= i {
-					n.sl = append(n.sl, newNode(n.tree, n, strconv.Itoa(i)))
+			if appendArrayMode {
+				for _, v := range d {
+					n.mu.Lock()
+					subnode := newNode(n.tree, n, strconv.Itoa(len(n.sl)))
+					n.sl = append(n.sl, subnode)
+					n.mu.Unlock()
+					modified = true
+					modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
+				}
+			} else {
+				for i, v := range d {
+					n.mu.Lock()
+					if len(n.sl) <= i {
+						n.sl = append(n.sl, newNode(n.tree, n, strconv.Itoa(i)))
+						modified = true
+					}
+					subnode := n.sl[i]
+					n.mu.Unlock()
+					modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
+				}
+				if len(n.sl) > len(d) {
+					n.mu.Lock()
+					slCopy := make([]*node, len(n.sl))
+					copy(slCopy, n.sl)
+					n.sl = n.sl[:len(d)]
+					n.mu.Unlock()
+					for i := len(d); i < len(slCopy); i++ {
+						slCopy[i].destroyObject(true)
+					}
 					modified = true
 				}
-				subnode := n.sl[i]
-				n.mu.Unlock()
-				modifiedSubnodes = append(modifiedSubnodes, subnode.patch(v)...)
-			}
-			if len(n.sl) > len(d) {
-				n.mu.Lock()
-				slCopy := make([]*node, len(n.sl))
-				copy(slCopy, n.sl)
-				n.sl = n.sl[:len(d)]
-				n.mu.Unlock()
-				for i := len(d); i < len(slCopy); i++ {
-					slCopy[i].destroyObject(true)
-				}
-				modified = true
 			}
 		}
 
 	default:
-		modified = n.setNodeType(NodeTypeValue)
+		modified, _ = n.setNodeType(NodeTypeValue)
 		n.mu.Lock()
 		if n.value != data {
 			modified = true
