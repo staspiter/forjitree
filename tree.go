@@ -18,7 +18,7 @@ type Tree struct {
 	watchersCleanTimestamp time.Time
 	watchersCleanInterval  float64
 
-	allowPatchingNulls bool
+	allowPatchingNulled bool
 }
 
 func New() *Tree {
@@ -29,7 +29,7 @@ func New() *Tree {
 		watchers:               make(map[string]*watcher),
 		watchersCleanTimestamp: time.Now(),
 		watchersCleanInterval:  60,
-		allowPatchingNulls:     true,
+		allowPatchingNulled:     true,
 	}
 	t.rootNode = newNode(t, nil, "")
 	return t
