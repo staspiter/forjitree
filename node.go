@@ -21,12 +21,11 @@ type node struct {
 	parent    *node
 	parentKey string
 
-	value     any
-	m         map[string]*node
-	sl        []*node
-	nodeType  int
-	mu        sync.RWMutex
-	nulledObj bool
+	value    any
+	m        map[string]*node
+	sl       []*node
+	nodeType int
+	mu       sync.RWMutex
 
 	obj        Object
 	objReflect reflect.Value
@@ -55,7 +54,6 @@ func newNode(tree *Tree, parent *node, parentKey string) *node {
 		parent:    parent,
 		parentKey: parentKey,
 		nodeType:  NodeTypeValue,
-		nulledObj: false,
 	}
 	return n
 }
@@ -63,10 +61,6 @@ func newNode(tree *Tree, parent *node, parentKey string) *node {
 func (n *node) setNodeType(newNodeType int) (modified bool, allowed bool) {
 	if newNodeType == n.nodeType {
 		return false, true
-	}
-
-	if !n.tree.allowPatchingNulled && n.nulledObj {
-		return false, false
 	}
 
 	n.destroyObject(true)
@@ -234,11 +228,7 @@ func (n *node) patch(data any) []*node {
 
 	default:
 		modified, _ = n.setNodeType(NodeTypeValue)
-		changedType := modified
 		n.mu.Lock()
-		if changedType && data == nil {
-			n.nulledObj = true
-		}
 		if n.value != data {
 			modified = true
 		}

@@ -19,7 +19,6 @@ func newWatcher(watcherId string) *watcher {
 		extractTimestamp: time.Now(),
 	}
 	w.tree.created = true
-	w.tree.allowPatchingNulled = false
 	return w
 }
 
