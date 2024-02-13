@@ -63,6 +63,11 @@ type Action interface {
 }
 
 func RunActions(actions []Action, c Context) error {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Fatal error in RunActions", r)
+		}
+	}()
 	for _, a := range actions {
 		actionErr := a.Call(c)
 		if actionErr != nil {
