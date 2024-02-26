@@ -782,6 +782,8 @@ class Type {
 
 class Block {
 
+    static UpdatedHook = null
+
     constructor(node) {
         this.node = node
         this.html = ""
@@ -851,6 +853,9 @@ class Block {
         for (const e of containedBlocks)
             if ((containerElement = this.element.querySelector("[contains*='" + e.getAttribute("type") + "']")) != null)
                 containerElement.appendChild(e)
+
+        if (Block.UpdatedHook)
+            Block.UpdatedHook(this)
     }
 
 }
