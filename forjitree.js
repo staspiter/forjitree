@@ -658,7 +658,7 @@ function GetObj(nodes, typeCheck = null) {
 function getClassName(c) {
     if (c.TypeName)
         return c.TypeName()
-    let match = /class\s+(?<classname>.+)\s+{/mg.exec(c.toString())
+    let match = /class\s+(?<classname>[\S]+?)\s*(extends|{)/mg.exec(c.toString())
     if (match !== null)
         return match.groups.classname.replace(/ .*/,'') // Get the first word to exclude "extends..."
     return null
