@@ -33,8 +33,9 @@ type node struct {
 }
 
 type Node interface {
-	Get(key string, postprocess bool) []Node
-	GetOne(key string, postprocess bool) Node
+	Get(key string) []Node
+	GetEx(key string, postprocess bool, avoidDuplicates bool) []Node
+	GetOne(key string) Node
 	Set(newValue any)
 	Query(q any) (any, error)
 	Value() any
@@ -414,7 +415,7 @@ func (n *node) getParents() []*node {
 	return result
 }
 
-func internalGet(nodes []*node, t pathToken, postprocess bool) []*node {
+func internalGet(nodes []*node, t pathToken, postprocess bool, avoidDuplicates bool) []*node {
 	// TODO: detect loops
 
 	var result []*node
@@ -434,24 +435,28 @@ func internalGet(nodes []*node, t pathToken, postprocess bool) []*node {
 
 		// Links (string values starting with @)
 		if vStr, vIsStr := n.value.(string); postprocess && n.nodeType == NodeTypeValue && vIsStr && strings.HasPrefix(vStr, "@") && n.parent != nil {
-			subResult := n.parent.Get(vStr[1:], true)
+			subResult := n.parent.Get(vStr[1:])
 			appendArr = []*node{}
 			for _, subNode := range subResult {
 				appendArr = append(appendArr, subNode.(*node))
 			}
 		}
 
-		for _, n2 := range appendArr {
-			exists := false
-			for i := 0; i < len(result); i++ {
-				if result[i] == n2 {
-					exists = true
-					return
+		if avoidDuplicates {
+			for _, n2 := range appendArr {
+				exists := false
+				for i := 0; i < len(result); i++ {
+					if result[i] == n2 {
+						exists = true
+						return
+					}
+				}
+				if !exists {
+					result = append(result, n2)
 				}
 			}
-			if !exists {
-				result = append(result, n2)
-			}
+		} else {
+			result = append(result, appendArr...)
 		}
 	}
 
@@ -513,7 +518,7 @@ func internalGet(nodes []*node, t pathToken, postprocess bool) []*node {
 	return result
 }
 
-func (n *node) Get(path string, postprocess bool) []Node {
+func (n *node) GetEx(path string, postprocess bool, avoidDuplicates bool) []Node {
 	tokenizedPath := TokenizePath(path)
 
 	if len(tokenizedPath) == 0 {
@@ -522,7 +527,7 @@ func (n *node) Get(path string, postprocess bool) []Node {
 
 	tempResult := []*node{n}
 	for i := range tokenizedPath {
-		tempResult = internalGet(tempResult, tokenizedPath[i], postprocess)
+		tempResult = internalGet(tempResult, tokenizedPath[i], postprocess, avoidDuplicates)
 	}
 
 	result := make([]Node, len(tempResult))
@@ -532,8 +537,12 @@ func (n *node) Get(path string, postprocess bool) []Node {
 	return result
 }
 
-func (n *node) GetOne(path string, postprocess bool) Node {
-	arr := n.Get(path, postprocess)
+func (n *node) Get(path string) []Node {
+	return n.GetEx(path, true, true)
+}
+
+func (n *node) GetOne(path string) Node {
+	arr := n.Get(path)
 	if len(arr) == 0 {
 		return nil
 	}
