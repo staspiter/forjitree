@@ -3,6 +3,7 @@ package forjitree
 import (
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"strings"
 )
 
@@ -66,6 +67,7 @@ func RunActions(actions []Action, c Context) error {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Fatal error in RunActions", r)
+			fmt.Println(string(debug.Stack()))
 		}
 	}()
 	for _, a := range actions {
