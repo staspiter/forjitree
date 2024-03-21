@@ -734,11 +734,10 @@ class ClientDatasource {
     }
 
     Disconnect() {
-        if (this.socket) {
-            if (this.reconnectTimer)
-                clearInterval(this.reconnectTimer)
+        if (this.reconnectTimer)
+            clearInterval(this.reconnectTimer)
+        if (this.socket)
             this.socket.close()
-        }        
     }
 
 }
