@@ -861,6 +861,7 @@ class Block {
 }
 
 function interpolateTemplate(tpl, args) {
+    // TODO: There may be some rubbish in args that breaks "new Function", possibly due to some weird keys
     var keys = Object.keys(args), fn = new Function(...keys, 'return `' + tpl.replace(/`/g, '\\`') + '`')
     return fn(...keys.map(x => args[x]))
 }
