@@ -30,7 +30,7 @@ type Datasource interface {
 	Set(query any) (map[string][]int, error)
 	Delete(query any) (map[string][]int, error)
 	Clear() error
-	Watch(query any, watcherId string) (any, error)
+	Watch(query string, watcherId string) (any, error)
 }
 
 type Context interface {
