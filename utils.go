@@ -66,6 +66,20 @@ func MakePatchWithPath(path string, object any, resolveSemicolonSign bool) any {
 	return m
 }
 
+func MergeMaps(m1 map[string]any, m2 map[string]any) {
+	for k, v := range m2 {
+		if vMap, vMapOk := v.(map[string]any); vMapOk {
+			if m1Map, m1MapOk := m1[k].(map[string]any); m1MapOk {
+				MergeMaps(m1Map, vMap)
+			} else {
+				m1[k] = vMap
+			}
+		} else {
+			m1[k] = v
+		}
+	}
+}
+
 func WaitForInterruption() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

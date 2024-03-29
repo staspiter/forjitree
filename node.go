@@ -108,9 +108,35 @@ func (n *node) getValue() any {
 }
 
 func (n *node) query(q any) (any, error) {
+	// Return the whole subtree (value)
 	if q == nil {
 		return n.getValue(), nil
 	}
+
+	// String query
+	if qStr, qIsStr := q.(string); qIsStr {
+		nodes := n.GetEx(qStr, true, true)
+		result := map[string]any{}
+		for _, n := range nodes {
+
+			// Get the full path of each node including the name of the tree (if defined)
+			treeName := n.Tree().GetName()
+			path := n.Path()
+			fullPath := treeName
+			if len(treeName) > 0 && len(path) > 0 {
+				fullPath += "/"
+			}
+			fullPath += path
+
+			patch := MakePatchWithPath(fullPath, n.Value(), true)
+			if patchMap, ok := patch.(map[string]any); ok {
+				MergeMaps(result, patchMap)
+			}
+		}
+		return result, nil
+	}
+
+	// Object path query
 
 	if n.nodeType == NodeTypeSlice {
 		qMap := EnsureMapAny(q)
