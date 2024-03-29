@@ -34,7 +34,7 @@ type node struct {
 
 type Node interface {
 	Get(key string) []Node
-	GetEx(key string, postprocess bool, avoidDuplicates bool) []Node
+	GetEx(key string, links bool, redirects bool, avoidDuplicates bool) []Node
 	GetOne(key string) Node
 	Set(newValue any)
 	Query(q any) (any, error)
@@ -115,7 +115,7 @@ func (n *node) query(q any) (any, error) {
 
 	// String query
 	if qStr, qIsStr := q.(string); qIsStr {
-		nodes := n.GetEx(qStr, true, true)
+		nodes := n.GetEx(qStr, true, true, true)
 		result := map[string]any{}
 		for _, n := range nodes {
 
@@ -440,7 +440,7 @@ func (n *node) getParents() []*node {
 	return result
 }
 
-func internalGet(nodes []*node, t pathToken, postprocess bool, avoidDuplicates bool) []*node {
+func internalGet(nodes []*node, t pathToken, links bool, redirects bool, avoidDuplicates bool) []*node {
 	// TODO: detect loops
 
 	var result []*node
@@ -452,21 +452,15 @@ func internalGet(nodes []*node, t pathToken, postprocess bool, avoidDuplicates b
 
 		var appendArr []*node
 
-		if postprocess {
-
-			if vStr, vIsStr := n.value.(string); n.nodeType == NodeTypeValue && vIsStr && strings.HasPrefix(vStr, "@") && n.parent != nil {
-				// Links (string values starting with @)
-				subResult := n.parent.Get(vStr[1:])
-				for _, subNode := range subResult {
-					appendArr = append(appendArr, subNode.(*node))
-				}
-			} else if n.objType != nil {
-				// Object redirect (for subtrees support)
-				appendArr = n.objType.callRedirect(n)
-
-			} else {
-				appendArr = []*node{n}
+		if vStr, vIsStr := n.value.(string); links && n.nodeType == NodeTypeValue && vIsStr && strings.HasPrefix(vStr, "@") && n.parent != nil {
+			// Links (string values starting with @)
+			subResult := n.parent.Get(vStr[1:])
+			for _, subNode := range subResult {
+				appendArr = append(appendArr, subNode.(*node))
 			}
+		} else if redirects && n.objType != nil {
+			// Object redirect (for subtrees support)
+			appendArr = n.objType.callRedirect(n)
 
 		} else {
 			appendArr = []*node{n}
@@ -548,7 +542,7 @@ func internalGet(nodes []*node, t pathToken, postprocess bool, avoidDuplicates b
 	return result
 }
 
-func (n *node) GetEx(path string, postprocess bool, avoidDuplicates bool) []Node {
+func (n *node) GetEx(path string, links bool, redirects bool, avoidDuplicates bool) []Node {
 	tokenizedPath := TokenizePath(path)
 
 	if len(tokenizedPath) == 0 {
@@ -557,7 +551,7 @@ func (n *node) GetEx(path string, postprocess bool, avoidDuplicates bool) []Node
 
 	tempResult := []*node{n}
 	for i := range tokenizedPath {
-		tempResult = internalGet(tempResult, tokenizedPath[i], postprocess, avoidDuplicates)
+		tempResult = internalGet(tempResult, tokenizedPath[i], links, redirects, avoidDuplicates)
 	}
 
 	result := make([]Node, len(tempResult))
@@ -568,7 +562,7 @@ func (n *node) GetEx(path string, postprocess bool, avoidDuplicates bool) []Node
 }
 
 func (n *node) Get(path string) []Node {
-	return n.GetEx(path, true, true)
+	return n.GetEx(path, true, true, true)
 }
 
 func (n *node) GetOne(path string) Node {
