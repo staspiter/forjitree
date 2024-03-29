@@ -358,7 +358,7 @@ class ForjiNode {
         return result
     }
 
-    internalGet(nodes, t, postProcess) {
+    internalGet(nodes, t) {
         let result = []
 
         let appendPostprocess = (n) => {
@@ -439,7 +439,7 @@ class ForjiNode {
         return result
     }
 
-    Get(path, postProcess) {
+    Get(path) {
         let tokenizedPath = tokenizePath(path)
 
         if (tokenizedPath.length == 0)
@@ -447,13 +447,13 @@ class ForjiNode {
 
         let tempResult = [this]
         for (const t of tokenizedPath)
-            tempResult = this.internalGet(tempResult, t, postProcess)
+            tempResult = this.internalGet(tempResult, t)
 
         return tempResult
     }
 
-    GetOne(path, postProcess) {
-        let arr = this.Get(path, postProcess)
+    GetOne(path) {
+        let arr = this.Get(path)
         if (arr.length == 0)
             return null
         return arr[0]

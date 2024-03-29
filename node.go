@@ -115,7 +115,7 @@ func (n *node) query(q any) (any, error) {
 	if n.nodeType == NodeTypeSlice {
 		qMap := EnsureMapAny(q)
 		if qMap == nil {
-			return nil, errors.New("subquery must be a map or null")
+			return nil, errors.New("map expected in the subquery")
 		}
 
 		children := n.getChildren(false)
@@ -132,7 +132,7 @@ func (n *node) query(q any) (any, error) {
 	} else if n.nodeType == NodeTypeMap {
 		qMap := EnsureMapAny(q)
 		if qMap == nil {
-			return nil, errors.New("subquery must be a map or null")
+			return nil, errors.New("map expected in the subquery")
 		}
 
 		result := map[string]any{}
@@ -151,7 +151,6 @@ func (n *node) query(q any) (any, error) {
 		return result, nil
 
 	} else {
-		// TODO: filtering functions similar to MySQLDatasource
 		return n.getValue(), nil
 	}
 }
@@ -425,21 +424,26 @@ func internalGet(nodes []*node, t pathToken, postprocess bool, avoidDuplicates b
 			return
 		}
 
-		// Object redirect (for subtrees)
 		var appendArr []*node
-		if postprocess && n.objType != nil {
-			appendArr = n.objType.callRedirect(n)
+
+		if postprocess {
+
+			if n.objType != nil {
+				// Object redirect (for subtrees support)
+				appendArr = n.objType.callRedirect(n)
+
+			} else if vStr, vIsStr := n.value.(string); n.nodeType == NodeTypeValue && vIsStr && strings.HasPrefix(vStr, "@") && n.parent != nil {
+				// Links (string values starting with @)
+				subResult := n.parent.Get(vStr[1:])
+				for _, subNode := range subResult {
+					appendArr = append(appendArr, subNode.(*node))
+				}
+			} else {
+				appendArr = []*node{n}
+			}
+
 		} else {
 			appendArr = []*node{n}
-		}
-
-		// Links (string values starting with @)
-		if vStr, vIsStr := n.value.(string); postprocess && n.nodeType == NodeTypeValue && vIsStr && strings.HasPrefix(vStr, "@") && n.parent != nil {
-			subResult := n.parent.Get(vStr[1:])
-			appendArr = []*node{}
-			for _, subNode := range subResult {
-				appendArr = append(appendArr, subNode.(*node))
-			}
 		}
 
 		if avoidDuplicates {
