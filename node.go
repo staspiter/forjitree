@@ -454,16 +454,16 @@ func internalGet(nodes []*node, t pathToken, postprocess bool, avoidDuplicates b
 
 		if postprocess {
 
-			if n.objType != nil {
-				// Object redirect (for subtrees support)
-				appendArr = n.objType.callRedirect(n)
-
-			} else if vStr, vIsStr := n.value.(string); n.nodeType == NodeTypeValue && vIsStr && strings.HasPrefix(vStr, "@") && n.parent != nil {
+			if vStr, vIsStr := n.value.(string); n.nodeType == NodeTypeValue && vIsStr && strings.HasPrefix(vStr, "@") && n.parent != nil {
 				// Links (string values starting with @)
 				subResult := n.parent.Get(vStr[1:])
 				for _, subNode := range subResult {
 					appendArr = append(appendArr, subNode.(*node))
 				}
+			} else if n.objType != nil {
+				// Object redirect (for subtrees support)
+				appendArr = n.objType.callRedirect(n)
+
 			} else {
 				appendArr = []*node{n}
 			}
