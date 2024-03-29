@@ -454,7 +454,7 @@ func internalGet(nodes []*node, t pathToken, links bool, redirects bool, avoidDu
 
 		if vStr, vIsStr := n.value.(string); links && n.nodeType == NodeTypeValue && vIsStr && strings.HasPrefix(vStr, "@") && n.parent != nil {
 			// Links (string values starting with @)
-			subResult := n.parent.Get(vStr[1:])
+			subResult := n.parent.GetEx(vStr[1:], links, redirects, avoidDuplicates)
 			for _, subNode := range subResult {
 				appendArr = append(appendArr, subNode.(*node))
 			}
