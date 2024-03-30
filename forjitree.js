@@ -406,7 +406,7 @@ class ForjiNode {
             else if (t.kind == PathTokenKind.Params) {
                 let satisfied = true
                 for (const p of t.params) {
-                    if (p.key == "PARENT_KEY") {
+                    if (p.key == "_key") {
                         if (n.parentKey != p.value) {
                             satisfied = false
                             break

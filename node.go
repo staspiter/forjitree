@@ -507,14 +507,15 @@ func internalGet(nodes []*node, t pathToken, links bool, redirects bool, avoidDu
 		} else if t.Kind == PathTokenKindParams {
 			satisfied := true
 			for _, p := range t.Params {
-				if p.Key == "PARENT_KEY" {
+				if p.Key == "_key" {
 					if n.parentKey != p.Value {
 						satisfied = false
 						break
 					}
 				} else {
-					n1 := n.getChild(p.Key)
-					if n1 == nil || (p.Value != "" && n1.value != p.Value) {
+					n1 := n.GetOne(p.Key)
+					// TODO: Support number comparisons, etc.
+					if n1 == nil || (p.Value != "" && n1.Value() != p.Value) {
 						satisfied = false
 						break
 					}

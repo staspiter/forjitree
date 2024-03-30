@@ -38,14 +38,29 @@ func splitCSV(s string, delimeter rune) []string {
 }
 
 func TokenizePath(path string) []pathToken {
-	tokensDelimeters := "/["
+	var subToken rune = '/'
+	var paramsToken rune = '['
+	var paramsCloseToken rune = ']'
+	var paramsTokenCounter = 0
 	var tokensStr []string
 	t := ""
 	for i := 0; i < len(path); i++ {
-		if strings.ContainsRune(tokensDelimeters, rune(path[i])) {
+
+		if rune(path[i]) == subToken && paramsTokenCounter == 0 {
 			tokensStr = append(tokensStr, t)
 			t = ""
+
+		} else if rune(path[i]) == paramsToken {
+			if paramsTokenCounter == 0 {
+				tokensStr = append(tokensStr, t)
+				t = ""
+			}
+			paramsTokenCounter++
+
+		} else if rune(path[i]) == paramsCloseToken {
+			paramsTokenCounter--
 		}
+		
 		t += string(path[i])
 	}
 	tokensStr = append(tokensStr, t)
