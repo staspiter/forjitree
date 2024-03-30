@@ -16,6 +16,10 @@ type Object interface {
 	Updated(string, any)
 }
 
+type ObjectLink interface {
+	Redirect() []Node
+}
+
 type NewObjectFunc = func(Node) Object
 
 type PluginsGetTypesFunc = func() []string

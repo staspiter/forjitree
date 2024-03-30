@@ -11,15 +11,12 @@ import (
 type ObjectType struct {
 	Name          string
 	newObjectFunc NewObjectFunc
-
-	redirect *bool
 }
 
 func NewObjectType(newObjectFunc NewObjectFunc, name string) *ObjectType {
 	return &ObjectType{
 		Name:          name,
 		newObjectFunc: newObjectFunc,
-		redirect:      nil,
 	}
 }
 
@@ -91,35 +88,4 @@ func (t *ObjectType) setField(n *node, fieldName string, fieldValue any) {
 	}
 
 	n.obj.Updated(fieldName, fieldValue)
-}
-
-func (t *ObjectType) callRedirect(n *node) []*node {
-	var m reflect.Value
-
-	// Cache Redirect function presence
-	if t.redirect == nil || *t.redirect {
-		if !n.objReflect.IsValid() || n.objReflect.IsZero() {
-			return []*node{n}
-		}
-		m = n.objReflect.MethodByName("Redirect")
-		var b bool = m.IsValid() && !m.IsZero()
-		t.redirect = &b
-		if !*t.redirect {
-			return []*node{n}
-		}
-	} else {
-		return []*node{n}
-	}
-
-	callResult := m.Call(nil)
-	if len(callResult) == 1 {
-		nodes := callResult[0].Interface().([]Node)
-		result := make([]*node, len(nodes))
-		for i, n2 := range nodes {
-			result[i] = n2.internalNode()
-		}
-		return result
-	} else {
-		return []*node{n}
-	}
 }

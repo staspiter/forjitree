@@ -460,7 +460,13 @@ func internalGet(nodes []*node, t pathToken, links bool, redirects bool, avoidDu
 			}
 		} else if redirects && n.objType != nil {
 			// Object redirect (for subtrees support)
-			appendArr = n.objType.callRedirect(n)
+			objLink := n.obj.(ObjectLink)
+			if objLink != nil {
+				redirectNodes := objLink.Redirect()
+				for _, n2 := range redirectNodes {
+					appendArr = append(appendArr, n2.internalNode())
+				}
+			}
 
 		} else {
 			appendArr = []*node{n}
