@@ -106,56 +106,42 @@ func TokenizePath(path string) []pathToken {
 			pairs := splitCSV(strings.Trim(ts, "[]"), ',')
 			for _, p := range pairs {
 
-				if strings.ContainsRune(p, '=') {
+				if strings.Contains(p, "=") {
 					// Value equation
 					dividerPos := strings.Index(p, "=")
-					key := p[:dividerPos]
-					value := p[dividerPos+1:]
-					t.Params = append(t.Params, pathTokenParam{Key: key, Value: value, ParamType: ParamTypeEquals})
+					t.Params = append(t.Params, pathTokenParam{Key: p[:dividerPos], Value: p[dividerPos+1:], ParamType: ParamTypeEquals})
 
 				} else if strings.Contains(p, "!=") {
 					// Value not equals
 					dividerPos := strings.Index(p, "!=")
-					key := p[:dividerPos]
-					value := p[dividerPos+2:]
-					t.Params = append(t.Params, pathTokenParam{Key: key, Value: value, ParamType: ParamTypeNotEquals})
+					t.Params = append(t.Params, pathTokenParam{Key: p[:dividerPos], Value: p[dividerPos+2:], ParamType: ParamTypeNotEquals})
 
 				} else if strings.Contains(p, ">") {
 					// Value greater than
 					dividerPos := strings.Index(p, ">")
-					key := p[:dividerPos]
-					value := p[dividerPos+1:]
-					t.Params = append(t.Params, pathTokenParam{Key: key, Value: value, ParamType: ParamTypeGreaterThan})
+					t.Params = append(t.Params, pathTokenParam{Key: p[:dividerPos], Value: p[dividerPos+1:], ParamType: ParamTypeGreaterThan})
 
 				} else if strings.Contains(p, "<") {
 					// Value less than
 					dividerPos := strings.Index(p, "<")
-					key := p[:dividerPos]
-					value := p[dividerPos+1:]
-					t.Params = append(t.Params, pathTokenParam{Key: key, Value: value, ParamType: ParamTypeLessThan})
+					t.Params = append(t.Params, pathTokenParam{Key: p[:dividerPos], Value: p[dividerPos+1:], ParamType: ParamTypeLessThan})
 
 				} else if strings.Contains(p, ">=") {
 					// Value greater or equals
 					dividerPos := strings.Index(p, ">=")
-					key := p[:dividerPos]
-					value := p[dividerPos+2:]
-					t.Params = append(t.Params, pathTokenParam{Key: key, Value: value, ParamType: ParamTypeGreaterOrEquals})
+					t.Params = append(t.Params, pathTokenParam{Key: p[:dividerPos], Value: p[dividerPos+2:], ParamType: ParamTypeGreaterOrEquals})
 
 				} else if strings.Contains(p, "<=") {
 					// Value less or equals
 					dividerPos := strings.Index(p, "<=")
-					key := p[:dividerPos]
-					value := p[dividerPos+2:]
-					t.Params = append(t.Params, pathTokenParam{Key: key, Value: value, ParamType: ParamTypeLessOrEquals})
+					t.Params = append(t.Params, pathTokenParam{Key: p[:dividerPos], Value: p[dividerPos+2:], ParamType: ParamTypeLessOrEquals})
 
 				} else if strings.Contains(p, "~") {
 					// Value regex
 					dividerPos := strings.Index(p, "~")
-					key := p[:dividerPos]
-					value := p[dividerPos+1:]
-					valueRegex, err := regexp.Compile(value)
+					valueRegex, err := regexp.Compile(p[dividerPos+1:])
 					if err != nil {
-						t.Params = append(t.Params, pathTokenParam{Key: key, ValueRegex: valueRegex, ParamType: ParamTypeRegex})
+						t.Params = append(t.Params, pathTokenParam{Key: p[:dividerPos], ValueRegex: valueRegex, ParamType: ParamTypeRegex})
 					}
 
 				} else if strings.HasPrefix(p, "!") {
