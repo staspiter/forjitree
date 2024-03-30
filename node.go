@@ -467,6 +467,8 @@ func internalGet(nodes []*node, t pathToken, links bool, redirects bool, avoidDu
 				for _, n2 := range redirectNodes {
 					appendArr = append(appendArr, n2.internalNode())
 				}
+			} else {
+				appendArr = []*node{n}
 			}
 
 		} else {
