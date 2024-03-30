@@ -29,6 +29,7 @@ type Datasource interface {
 
 	Connect() error
 	Disconnect() error
+	JustDropped() bool
 
 	Get(query any) (any, error)
 	Set(query any) (map[string][]int, error)
