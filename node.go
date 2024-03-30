@@ -2,6 +2,7 @@ package forjitree
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -521,7 +522,7 @@ func internalGet(nodes []*node, t pathToken, links bool, redirects bool, avoidDu
 				} else {
 					n1 := n.GetOne(p.Key)
 					// TODO: Support number comparisons, etc.
-					if n1 == nil || (p.Value != "" && n1.Value() != p.Value) {
+					if n1 == nil || (p.Value != "" && fmt.Sprintf("%v", n1.Value()) != p.Value) {
 						satisfied = false
 						break
 					}
