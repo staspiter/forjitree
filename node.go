@@ -526,7 +526,7 @@ func internalGet(nodes []*node, t pathToken, links bool, redirects bool, avoidDu
 						}
 					} else {
 						n1 := n.GetOne(p.Key)
-						if fmt.Sprintf("%v", n1.Value()) != p.Value {
+						if n1 == nil || fmt.Sprintf("%v", n1.Value()) != p.Value {
 							satisfied = false
 							break loop
 						}
@@ -534,13 +534,17 @@ func internalGet(nodes []*node, t pathToken, links bool, redirects bool, avoidDu
 
 				case ParamTypeNotEquals:
 					n1 := n.GetOne(p.Key)
-					if fmt.Sprintf("%v", n1.Value()) == p.Value {
+					if n1 == nil || fmt.Sprintf("%v", n1.Value()) == p.Value {
 						satisfied = false
 						break loop
 					}
 
 				case ParamTypeGreaterThan:
 					n1 := n.GetOne(p.Key)
+					if n1 == nil {
+						satisfied = false
+						break loop
+					}
 					n1FloatValue, err := strconv.ParseFloat(fmt.Sprintf("%v", n1.Value()), 64)
 					if err != nil {
 						satisfied = false
@@ -558,6 +562,10 @@ func internalGet(nodes []*node, t pathToken, links bool, redirects bool, avoidDu
 
 				case ParamTypeLessThan:
 					n1 := n.GetOne(p.Key)
+					if n1 == nil {
+						satisfied = false
+						break loop
+					}
 					n1FloatValue, err := strconv.ParseFloat(fmt.Sprintf("%v", n1.Value()), 64)
 					if err != nil {
 						satisfied = false
@@ -575,6 +583,10 @@ func internalGet(nodes []*node, t pathToken, links bool, redirects bool, avoidDu
 
 				case ParamTypeGreaterOrEquals:
 					n1 := n.GetOne(p.Key)
+					if n1 == nil {
+						satisfied = false
+						break loop
+					}
 					n1FloatValue, err := strconv.ParseFloat(fmt.Sprintf("%v", n1.Value()), 64)
 					if err != nil {
 						satisfied = false
@@ -592,6 +604,10 @@ func internalGet(nodes []*node, t pathToken, links bool, redirects bool, avoidDu
 
 				case ParamTypeLessOrEquals:
 					n1 := n.GetOne(p.Key)
+					if n1 == nil {
+						satisfied = false
+						break loop
+					}
 					n1FloatValue, err := strconv.ParseFloat(fmt.Sprintf("%v", n1.Value()), 64)
 					if err != nil {
 						satisfied = false
