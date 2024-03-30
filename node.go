@@ -513,20 +513,127 @@ func internalGet(nodes []*node, t pathToken, links bool, redirects bool, avoidDu
 
 		} else if t.Kind == PathTokenKindParams {
 			satisfied := true
+
+		loop:
 			for _, p := range t.Params {
-				if p.Key == "_key" {
-					if n.parentKey != p.Value {
-						satisfied = false
-						break
+
+				switch p.ParamType {
+				case ParamTypeEquals:
+					if p.Key == "_key" {
+						if n.parentKey != p.Value {
+							satisfied = false
+							break loop
+						}
+					} else {
+						n1 := n.GetOne(p.Key)
+						if fmt.Sprintf("%v", n1.Value()) != p.Value {
+							satisfied = false
+							break loop
+						}
 					}
-				} else {
+
+				case ParamTypeNotEquals:
 					n1 := n.GetOne(p.Key)
-					// TODO: Support number comparisons, etc.
-					if n1 == nil || (p.Value != "" && fmt.Sprintf("%v", n1.Value()) != p.Value) {
+					if fmt.Sprintf("%v", n1.Value()) == p.Value {
 						satisfied = false
-						break
+						break loop
+					}
+
+				case ParamTypeGreaterThan:
+					n1 := n.GetOne(p.Key)
+					n1FloatValue, err := strconv.ParseFloat(fmt.Sprintf("%v", n1.Value()), 64)
+					if err != nil {
+						satisfied = false
+						break loop
+					}
+					pFloatValue, err := strconv.ParseFloat(p.Value, 64)
+					if err != nil {
+						satisfied = false
+						break loop
+					}
+					if n1FloatValue <= pFloatValue {
+						satisfied = false
+						break loop
+					}
+
+				case ParamTypeLessThan:
+					n1 := n.GetOne(p.Key)
+					n1FloatValue, err := strconv.ParseFloat(fmt.Sprintf("%v", n1.Value()), 64)
+					if err != nil {
+						satisfied = false
+						break loop
+					}
+					pFloatValue, err := strconv.ParseFloat(p.Value, 64)
+					if err != nil {
+						satisfied = false
+						break loop
+					}
+					if n1FloatValue >= pFloatValue {
+						satisfied = false
+						break loop
+					}
+
+				case ParamTypeGreaterOrEquals:
+					n1 := n.GetOne(p.Key)
+					n1FloatValue, err := strconv.ParseFloat(fmt.Sprintf("%v", n1.Value()), 64)
+					if err != nil {
+						satisfied = false
+						break loop
+					}
+					pFloatValue, err := strconv.ParseFloat(p.Value, 64)
+					if err != nil {
+						satisfied = false
+						break loop
+					}
+					if n1FloatValue < pFloatValue {
+						satisfied = false
+						break loop
+					}
+
+				case ParamTypeLessOrEquals:
+					n1 := n.GetOne(p.Key)
+					n1FloatValue, err := strconv.ParseFloat(fmt.Sprintf("%v", n1.Value()), 64)
+					if err != nil {
+						satisfied = false
+						break loop
+					}
+					pFloatValue, err := strconv.ParseFloat(p.Value, 64)
+					if err != nil {
+						satisfied = false
+						break loop
+					}
+					if n1FloatValue > pFloatValue {
+						satisfied = false
+						break loop
+					}
+
+				case ParamTypePresence:
+					n1 := n.GetOne(p.Key)
+					if n1 == nil {
+						satisfied = false
+						break loop
+					}
+
+				case ParamTypeNotPresence:
+					n1 := n.GetOne(p.Key)
+					if n1 != nil {
+						satisfied = false
+						break loop
+					}
+
+				case ParamTypeRegex:
+					n1 := n.GetOne(p.Key)
+					if n1 == nil || p.ValueRegex == nil {
+						satisfied = false
+						break loop
+					}
+					n1Str := fmt.Sprintf("%v", n1.Value())
+					if !p.ValueRegex.MatchString(n1Str) {
+						satisfied = false
+						break loop
 					}
 				}
+
 			}
 			if satisfied {
 				appendPostprocess(n)

@@ -61,6 +61,7 @@ func TestTokenizePath(t *testing.T) {
 						{
 							"key",
 							"value",
+							ParamTypeEquals,
 						},
 					},
 				},
@@ -83,6 +84,7 @@ func TestTokenizePath(t *testing.T) {
 						{
 							"key/subkey",
 							"value",
+							ParamTypeEquals,
 						},
 					},
 				},
