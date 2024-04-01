@@ -674,6 +674,7 @@ class ClientDatasource {
         this.reconnectTimer = null
         this.OnError = null
         this.OnClose = null
+        this.OnOpen = null
     }
 
     Created() {
@@ -713,6 +714,8 @@ class ClientDatasource {
                     clearInterval(self.reconnectTimer)
                     self.reconnectTimer = null
                 }
+                if (self.OnOpen)
+                    self.OnOpen()
             }
             this.socket.onmessage = (event) => {
                 let data = msgpack.deserialize(new Uint8Array(event.data))
