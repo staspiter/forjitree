@@ -675,6 +675,7 @@ class ClientDatasource {
         this.OnError = null
         this.OnClose = null
         this.OnOpen = null
+        this.disconnected = false
     }
 
     Created() {
@@ -688,6 +689,8 @@ class ClientDatasource {
 
     Connect() {
         let self = this
+
+        this.disconnected = false
 
         this.Tree.SetName(this.url)
 
@@ -722,13 +725,13 @@ class ClientDatasource {
                 self.Tree.Set(data)
             }
             this.socket.onclose = (event) => {
-                if (self.reconnectTimer == null)
+                if (self.reconnectTimer == null && !self.disconnected)
                     self.reconnectTimer = setInterval(() => { self.Connect() }, 2000)
                 if (self.OnClose)
                     self.OnClose(event)
             }
             this.socket.onerror = (error) => {
-                if (self.reconnectTimer == null)
+                if (self.reconnectTimer == null && !self.disconnected)
                     self.reconnectTimer = setInterval(() => { self.Connect() }, 2000)
                 if (self.OnError)
                     self.OnError(error)
@@ -737,8 +740,13 @@ class ClientDatasource {
     }
 
     Disconnect() {
-        if (this.reconnectTimer)
+        this.disconnected = true
+
+        if (this.reconnectTimer) {
             clearInterval(this.reconnectTimer)
+            this.reconnectTimer = null
+        }
+        
         if (this.socket)
             this.socket.close()
     }
