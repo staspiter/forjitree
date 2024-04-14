@@ -672,6 +672,7 @@ class ClientDatasource {
         this.Tree = new ForjiTree()
         this.watcherId = crypto.randomUUID()
         this.reconnectTimer = null
+        this.OnTransform = null // it is only used for http requests
         this.OnError = null
         this.OnClose = null
         this.OnOpen = null
@@ -698,7 +699,11 @@ class ClientDatasource {
             // Request data only once
             fetch(this.url)
                 .then(response => response.json())
-                .then(data => self.Tree.Set(data))
+                .then(data => {
+                    if (self.OnTransform)
+                        data = self.OnTransform(data)
+                    self.Tree.Set(data)
+                })
         }
 
         else if (this.url.startsWith('ws://') || this.url.startsWith('wss://')) {
