@@ -703,6 +703,8 @@ class ClientDatasource {
                     if (self.OnTransform)
                         data = self.OnTransform(data)
                     self.Tree.Set(data)
+                    if (self.OnOpen)
+                        self.OnOpen()
                 })
         }
 
