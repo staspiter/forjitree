@@ -181,48 +181,57 @@ class ForjiNode {
         let modifiedSubnodes = []
 
         if (d !== null && typeof d === 'object' && !Array.isArray(d)) {
-            modified = this.setNodeType(NodeType.Map)
-            for (const [k, v] of Object.entries(d)) {
-                let n = this.m[k]
-                if (!n) {
-                    n = new ForjiNode(this.tree, this, k)
-                    this.m[k] = n
-                    modified = true
+
+            // if the node is a slice and all patch keys are existing indexes, we can keep the slice
+            if (this.nodeType == NodeType.Slice) {
+                let allKeysAreExistingIndices = true
+                for (const k of Object.keys(d)) {
+                    let parsedK = parseInt(k)
+                    if (Number.isInteger(parsedK) == false || parsedK > this.sl.length - 1 || parsedK < 0) {
+                        allKeysAreExistingIndices = false
+                        break
+                    }
                 }
-                modifiedSubnodes = modifiedSubnodes.concat(n.patch(v))
+                if (allKeysAreExistingIndices) {
+                    for (const k of Object.keys(d)) {
+                        modifiedSubnodes = modifiedSubnodes.concat(this.sl[parseInt(k)].patch(d[k]))
+                        modified = true
+                    }
+                }
             }
+
+            if (!modified) {
+                modified = this.setNodeType(NodeType.Map)
+                for (const [k, v] of Object.entries(d)) {
+                    let n = this.m[k]
+                    if (!n) {
+                        n = new ForjiNode(this.tree, this, k)
+                        this.m[k] = n
+                        modified = true
+                    }
+                    modifiedSubnodes = modifiedSubnodes.concat(n.patch(v))
+                }                
+            }
+            
 
         } else if (d !== null && Array.isArray(d)) {
             modified = this.setNodeType(NodeType.Slice)
 
-            // Check if we are in appendArray mode
-            let appendArrayMode = d.length > 0 && typeof d[0] === 'object' && d[0]["appendArray"]
-
-            if (appendArrayMode) {
-                for (let i = 0; i < d.length; i++) {
-                    let v = d[i]
-                    let n = new ForjiNode(this.tree, this, this.sl.length)
+            for (let i = 0; i < d.length; i++) {
+                let v = d[i]
+                if (this.sl.length <= i) {
+                    let n = new ForjiNode(this.tree, this, i)
                     this.sl.push(n)
                     modified = true
-                    modifiedSubnodes = modifiedSubnodes.concat(n.patch(v))
                 }
-            } else {
-                for (let i = 0; i < d.length; i++) {
-                    let v = d[i]
-                    if (this.sl.length <= i) {
-                        let n = new ForjiNode(this.tree, this, i)
-                        this.sl.push(n)
-                        modified = true
-                    }
-                    let n = this.sl[i]
-                    modifiedSubnodes = modifiedSubnodes.concat(n.patch(v))
-                }
-                if (this.sl.length > d.length) {
-                    for (let i = d.length; i < this.sl.length; i++)
-                        this.sl[i].destroyObject(true)
-                    this.sl = this.sl.slice(0, d.length)
-                    modified = true
-                }                
+                let n = this.sl[i]
+                modifiedSubnodes = modifiedSubnodes.concat(n.patch(v))
+            }
+            if (this.sl.length > d.length) {
+                for (let i = d.length; i < this.sl.length; i++)
+                    this.sl[i].destroyObject(true)
+                this.sl = this.sl.slice(0, d.length)
+                modified = true
             }
 
         } else {
