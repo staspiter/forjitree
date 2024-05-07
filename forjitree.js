@@ -542,10 +542,22 @@ const PathTokenKind = {
 }
 
 function tokenizePath(path) {
-    let tokensDelimeters = "/["
+    const tokensDelimeters = "/["
+    const escapeToken = "\\"
+    
     let tokensStr = []
     let t = ""
     for (let i = 0; i < path.length; i++) {
+
+        // Escape token
+        if (path[i] == escapeToken) {
+            i++
+            if (i >= path.length)
+                break
+            t += path[i]
+            continue
+        }
+
         if (tokensDelimeters.includes(path[i])) {
             tokensStr.push(t)
             t = ""
@@ -584,6 +596,7 @@ function tokenizePath(path) {
             t.kind = PathTokenKind.AllChildren
 
         else if (ts.startsWith("[") && ts.endsWith("]")) {
+            // TODO: Implement conditional checks same as in Go
             // [key=value,key] filter token
             t.kind = PathTokenKind.Params
             ts = ts.substring(1, ts.length - 1)

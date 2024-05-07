@@ -53,13 +53,25 @@ func splitCSV(s string, delimeter rune) []string {
 }
 
 func TokenizePath(path string) []pathToken {
-	var subToken rune = '/'
-	var paramsToken rune = '['
-	var paramsCloseToken rune = ']'
+	const subToken rune = '/'
+	const paramsToken rune = '['
+	const paramsCloseToken rune = ']'
+	const escapeToken rune = '\\'
+
 	var paramsTokenCounter = 0
 	var tokensStr []string
 	t := ""
 	for i := 0; i < len(path); i++ {
+
+		// Escape token
+		if rune(path[i]) == escapeToken {
+			i++
+			if i >= len(path) {
+				break
+			}
+			t += string(path[i])
+			continue
+		}
 
 		if rune(path[i]) == subToken && paramsTokenCounter == 0 {
 			tokensStr = append(tokensStr, t)
