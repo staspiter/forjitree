@@ -47,6 +47,9 @@ type Context interface {
 	GetLastError() string
 	SetLastError(string)
 
+	GetCurrentAction() Action
+	SetCurrentAction(Action)
+
 	Get(key string) any
 	Set(key string, value any)
 
@@ -69,13 +72,16 @@ type Action interface {
 }
 
 func RunActions(actions []Action, c Context) error {
+	currentAction := c.GetCurrentAction()
 	defer func() {
+		c.SetCurrentAction(currentAction)
 		if r := recover(); r != nil {
 			fmt.Println("Fatal error in RunActions", r)
 			fmt.Println(string(debug.Stack()))
 		}
 	}()
 	for _, a := range actions {
+		c.SetCurrentAction(a)
 		actionErr := a.Call(c)
 		if actionErr != nil {
 			c.SetLastError(actionErr.Error())
