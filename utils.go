@@ -124,6 +124,15 @@ func CloneMap(m map[string]any) map[string]any {
 	return cp
 }
 
+func SetFields(to map[string]any, from map[string]any) {
+	for k := range to {
+		delete(to, k)
+	}
+	for k, v := range from {
+		to[k] = v
+	}
+}
+
 func GetValueFromArray(m []any, path []string) any {
 	if len(path) == 0 {
 		return m
