@@ -129,7 +129,13 @@ func SetFields(to map[string]any, from map[string]any) {
 		delete(to, k)
 	}
 	for k, v := range from {
-		to[k] = v
+		if vMap, vMapOk := v.(map[string]any); vMapOk {
+			to[k] = CloneMap(vMap)
+		} else if vArr, vArrOk := v.([]any); vArrOk {
+			to[k] = CloneArray(vArr)
+		} else {
+			to[k] = v
+		}
 	}
 }
 
