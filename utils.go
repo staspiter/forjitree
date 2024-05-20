@@ -125,6 +125,9 @@ func CloneMap(m map[string]any) map[string]any {
 }
 
 func SetFields(to map[string]any, from map[string]any) {
+	if &to == &from {
+		return
+	}
 	for k := range to {
 		delete(to, k)
 	}
