@@ -15,6 +15,7 @@ type Slave struct {
 	handler       SlaveHandlerFunc
 	running       bool
 	client        *http.Client
+	currentTaskId string
 }
 
 func NewSlave() *Slave {
@@ -50,11 +51,11 @@ func (s *Slave) run() {
 
 		if taskAny := readyResponse["task"]; taskAny != nil {
 			if task, ok := taskAny.(map[string]any); ok {
-				taskId := task["taskId"].(string)
+				s.currentTaskId = task["taskId"].(string)
 
 				s.handler(s, task)
 
-				s.makeRequest("slave=done&taskId="+taskId, task)
+				s.makeRequest("slave=done&taskId="+s.currentTaskId, task)
 			}
 		}
 	}
@@ -98,5 +99,5 @@ func (s *Slave) makeRequest(params string, payload map[string]any) (map[string]a
 }
 
 func (s *Slave) Progress(task map[string]any) {
-	s.makeRequest("slave=progress", task)
+	s.makeRequest("slave=progress&taskId="+s.currentTaskId, task)
 }
