@@ -3,6 +3,7 @@ package forjitree
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -16,12 +17,14 @@ type Slave struct {
 	running       bool
 	client        *http.Client
 	currentTaskId string
+	connected     bool
 }
 
 func NewSlave() *Slave {
 	return &Slave{
-		client:  &http.Client{},
-		running: true,
+		client:    &http.Client{},
+		running:   true,
+		connected: false,
 	}
 }
 
@@ -45,9 +48,18 @@ func (s *Slave) run() {
 
 		readyResponse, err := s.makeRequest("slave=ready", nil)
 		if err != nil {
+			if s.connected {
+				fmt.Println("Connection lost")
+			}
+			s.connected = false
 			time.Sleep(time.Second)
 			continue
 		}
+
+		if !s.connected {
+			fmt.Println("Connected to " + s.actionTaskUrl)
+		}
+		s.connected = true
 
 		if taskAny := readyResponse["task"]; taskAny != nil {
 			if task, ok := taskAny.(map[string]any); ok {
