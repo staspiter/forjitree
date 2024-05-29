@@ -692,6 +692,7 @@ class ClientDatasource {
         this.node = node
         this.url = ""
         this.Tree = new ForjiTree()
+        this.Tree.datasource = this
         this.watcherId = crypto.randomUUID()
         this.reconnectTimer = null
         this.OnTransform = null // it is only used for http requests
@@ -778,6 +779,11 @@ class ClientDatasource {
         
         if (this.socket)
             this.socket.close()
+    }
+
+    Send(input) {
+        if (this.socket)
+            this.socket.send(msgpack.serialize(input))
     }
 
 }
